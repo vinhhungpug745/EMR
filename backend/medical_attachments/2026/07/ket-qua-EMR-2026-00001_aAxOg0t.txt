@@ -1,6 +1,0 @@
-PHIẾU KẾT QUẢ KHÁM
-Mã hồ sơ: EMR-2026-00001
-Bệnh nhân: Nguyễn Văn Hùng
-Ngày khám: 25/07/2026 08:00
-Chẩn đoán: Viêm họng cấp
-Kế hoạch điều trị: Điều trị triệu chứng, uống đủ nước và theo dõi nhiệt độ.

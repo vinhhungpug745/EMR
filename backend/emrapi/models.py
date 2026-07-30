@@ -28,6 +28,10 @@ class Department(BaseModel):
     def __str__(self):
         return self.name
 
+class GenderChoices(models.TextChoices):
+    MALE = 'male', 'Nam'
+    FEMALE = 'female', 'Nữ'
+    OTHER = 'other', 'Khác'
 
 class StaffProfile(BaseModel):
     class Role(models.TextChoices):
@@ -48,6 +52,7 @@ class StaffProfile(BaseModel):
     role = models.CharField(max_length=32, choices=Role.choices)
     employee_code = models.CharField(max_length=64, unique=True)
     phone = models.CharField(max_length=20, blank=True, null=True)
+    gender = models.CharField(max_length=12,choices=GenderChoices.choices,blank=True,null=True,)
 
     class Meta:
         ordering = ['role', 'employee_code']
@@ -62,14 +67,9 @@ class StaffProfile(BaseModel):
 
 
 class Patient(BaseModel):
-    class Gender(models.TextChoices):
-        MALE = 'male', 'Nam'
-        FEMALE = 'female', 'Nu'
-        OTHER = 'other', 'Khac'
-
     full_name = models.CharField(max_length=160)
     date_of_birth = models.DateField()
-    gender = models.CharField(max_length=12, choices=Gender.choices)
+    gender = models.CharField(max_length=12,choices=GenderChoices.choices,blank=True,null=True)
     phone = models.CharField(max_length=20, blank=True, null=True)
     email = models.EmailField(blank=True, null=True)
     address = models.CharField(max_length=255, blank=True, null=True)

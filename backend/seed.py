@@ -13,7 +13,7 @@ import django
 django.setup()
 
 from django.contrib.auth.models import User
-from django.core.files.base import ContentFile
+# from django.core.files.base import ContentFile
 from django.db import transaction
 from django.utils import timezone
 
@@ -22,6 +22,7 @@ from emrapi.models import (
     Department,
     DoctorProfile,
     Encounter,
+    GenderChoices,
     LabTechnicianProfile,
     LabTest,
     MedicalAttachment,
@@ -84,6 +85,7 @@ MEDICATION_QUANTITIES = {
 STAFF_DATA = [
     {
         'username': 'admin_emr',
+        'gender': GenderChoices.MALE,
         'last_name': 'Nguyễn',
         'first_name': 'Minh Quân',
         'role': StaffProfile.Role.ADMIN,
@@ -93,6 +95,7 @@ STAFF_DATA = [
     },
     {
         'username': 'tiepnhan.mai',
+        'gender': GenderChoices.FEMALE,
         'last_name': 'Trần',
         'first_name': 'Ngọc Mai',
         'role': StaffProfile.Role.RECEPTIONIST,
@@ -104,6 +107,7 @@ STAFF_DATA = [
     },
     {
         'username': 'tiepnhan.huong',
+        'gender': GenderChoices.FEMALE,
         'last_name': 'Lê',
         'first_name': 'Thu Hương',
         'role': StaffProfile.Role.RECEPTIONIST,
@@ -115,6 +119,7 @@ STAFF_DATA = [
     },
     {
         'username': 'tiepnhan.phong',
+        'gender': GenderChoices.MALE,
         'last_name': 'Phạm',
         'first_name': 'Đức Phong',
         'role': StaffProfile.Role.RECEPTIONIST,
@@ -126,6 +131,7 @@ STAFF_DATA = [
     },
     {
         'username': 'dieuduong.lan',
+        'gender': GenderChoices.FEMALE,
         'last_name': 'Nguyễn',
         'first_name': 'Thị Lan',
         'role': StaffProfile.Role.NURSE,
@@ -137,6 +143,7 @@ STAFF_DATA = [
     },
     {
         'username': 'dieuduong.thao',
+        'gender': GenderChoices.FEMALE,
         'last_name': 'Đặng',
         'first_name': 'Thanh Thảo',
         'role': StaffProfile.Role.NURSE,
@@ -148,6 +155,7 @@ STAFF_DATA = [
     },
     {
         'username': 'dieuduong.hien',
+        'gender': GenderChoices.FEMALE,
         'last_name': 'Bùi',
         'first_name': 'Ngọc Hiền',
         'role': StaffProfile.Role.NURSE,
@@ -159,6 +167,7 @@ STAFF_DATA = [
     },
     {
         'username': 'dieuduong.nam',
+        'gender': GenderChoices.MALE,
         'last_name': 'Võ',
         'first_name': 'Hoàng Nam',
         'role': StaffProfile.Role.NURSE,
@@ -170,6 +179,7 @@ STAFF_DATA = [
     },
     {
         'username': 'dieuduong.trang',
+        'gender': GenderChoices.FEMALE,
         'last_name': 'Đỗ',
         'first_name': 'Huyền Trang',
         'role': StaffProfile.Role.NURSE,
@@ -181,6 +191,7 @@ STAFF_DATA = [
     },
     {
         'username': 'bacsi.an',
+        'gender': GenderChoices.MALE,
         'last_name': 'Nguyễn',
         'first_name': 'Hoàng An',
         'role': StaffProfile.Role.DOCTOR,
@@ -193,6 +204,7 @@ STAFF_DATA = [
     },
     {
         'username': 'bacsi.linh',
+        'gender': GenderChoices.FEMALE,
         'last_name': 'Trần',
         'first_name': 'Mỹ Linh',
         'role': StaffProfile.Role.DOCTOR,
@@ -205,6 +217,7 @@ STAFF_DATA = [
     },
     {
         'username': 'bacsi.khoa',
+        'gender': GenderChoices.MALE,
         'last_name': 'Lê',
         'first_name': 'Đăng Khoa',
         'role': StaffProfile.Role.DOCTOR,
@@ -217,6 +230,7 @@ STAFF_DATA = [
     },
     {
         'username': 'bacsi.ha',
+        'gender': GenderChoices.FEMALE,
         'last_name': 'Phạm',
         'first_name': 'Thu Hà',
         'role': StaffProfile.Role.DOCTOR,
@@ -229,6 +243,7 @@ STAFF_DATA = [
     },
     {
         'username': 'bacsi.son',
+        'gender': GenderChoices.MALE,
         'last_name': 'Vũ',
         'first_name': 'Minh Sơn',
         'role': StaffProfile.Role.DOCTOR,
@@ -241,6 +256,7 @@ STAFF_DATA = [
     },
     {
         'username': 'bacsi.ngan',
+        'gender': GenderChoices.FEMALE,
         'last_name': 'Bùi',
         'first_name': 'Kim Ngân',
         'role': StaffProfile.Role.DOCTOR,
@@ -253,6 +269,7 @@ STAFF_DATA = [
     },
     {
         'username': 'bacsi.tuan',
+        'gender': GenderChoices.MALE,
         'last_name': 'Đỗ',
         'first_name': 'Anh Tuấn',
         'role': StaffProfile.Role.DOCTOR,
@@ -265,6 +282,7 @@ STAFF_DATA = [
     },
     {
         'username': 'bacsi.vy',
+        'gender': GenderChoices.FEMALE,
         'last_name': 'Hoàng',
         'first_name': 'Thảo Vy',
         'role': StaffProfile.Role.DOCTOR,
@@ -277,6 +295,7 @@ STAFF_DATA = [
     },
     {
         'username': 'xetnghiem.hai',
+        'gender': GenderChoices.MALE,
         'last_name': 'Nguyễn',
         'first_name': 'Quang Hải',
         'role': StaffProfile.Role.LAB_TECHNICIAN,
@@ -288,6 +307,7 @@ STAFF_DATA = [
     },
     {
         'username': 'xetnghiem.yen',
+        'gender': GenderChoices.FEMALE,
         'last_name': 'Trần',
         'first_name': 'Hải Yến',
         'role': StaffProfile.Role.LAB_TECHNICIAN,
@@ -299,6 +319,7 @@ STAFF_DATA = [
     },
     {
         'username': 'xetnghiem.long',
+        'gender': GenderChoices.MALE,
         'last_name': 'Phan',
         'first_name': 'Thành Long',
         'role': StaffProfile.Role.LAB_TECHNICIAN,
@@ -310,6 +331,7 @@ STAFF_DATA = [
     },
     {
         'username': 'xetnghiem.quynh',
+        'gender': GenderChoices.FEMALE,
         'last_name': 'Lê',
         'first_name': 'Như Quỳnh',
         'role': StaffProfile.Role.LAB_TECHNICIAN,
@@ -502,6 +524,7 @@ def seed_staff(departments):
             defaults={
                 'department': departments.get(data['department']),
                 'role': data['role'],
+                'gender': data['gender'],
                 'employee_code': data['employee_code'],
                 'phone': data['phone'],
                 'active': True,
@@ -583,8 +606,8 @@ def seed_staff(departments):
 
 
 def build_patient_name(index):
-    gender = Patient.Gender.MALE if index % 2 == 0 else Patient.Gender.FEMALE
-    given_names = MALE_NAMES if gender == Patient.Gender.MALE else FEMALE_NAMES
+    gender = GenderChoices.MALE if index % 2 == 0 else GenderChoices.FEMALE
+    given_names = MALE_NAMES if gender == GenderChoices.MALE else FEMALE_NAMES
     full_name = (
         f'{FAMILY_NAMES[index % len(FAMILY_NAMES)]} '
         f'{MIDDLE_NAMES[(index * 3) % len(MIDDLE_NAMES)]} '
@@ -788,31 +811,35 @@ def seed_encounters(patients, staff_by_role, medications):
                     medications,
                 )
 
-            if patient_index % 5 == 0 and visit_index == 0:
-                attachment, _ = MedicalAttachment.objects.update_or_create(
-                    encounter=encounter,
-                    title='Phiếu kết quả khám tổng hợp',
-                    defaults={
-                        'uploaded_by': doctor.staff,
-                        'description': 'Tệp minh họa dùng để kiểm thử giao diện.',
-                        'active': True,
-                    },
-                )
-                if not attachment.file or not attachment.file.storage.exists(attachment.file.name):
-                    attachment.file.save(
-                        f'ket-qua-{record.record_number}.txt',
-                        ContentFile(
-                            (
-                                f'PHIẾU KẾT QUẢ KHÁM\n'
-                                f'Mã hồ sơ: {record.record_number}\n'
-                                f'Bệnh nhân: {patient.full_name}\n'
-                                f'Ngày khám: {visit_at:%d/%m/%Y %H:%M}\n'
-                                f'Chẩn đoán: {case["diagnosis"]}\n'
-                                f'Kế hoạch điều trị: {case["plan"]}\n'
-                            ).encode('utf-8')
-                        ),
-                        save=True,
-                    )
+            # Tam ngung tao tep dinh kem mau de seed khong ghi file vat ly.
+            # if patient_index % 5 == 0 and visit_index == 0:
+            #     attachment, _ = MedicalAttachment.objects.update_or_create(
+            #         encounter=encounter,
+            #         title='Phieu ket qua kham tong hop',
+            #         defaults={
+            #             'uploaded_by': doctor.staff,
+            #             'description': 'Tep minh hoa dung de kiem thu giao dien.',
+            #             'active': True,
+            #         },
+            #     )
+            #     if (
+            #         not attachment.file
+            #         or not attachment.file.storage.exists(attachment.file.name)
+            #     ):
+            #         attachment.file.save(
+            #             f'ket-qua-{record.record_number}.txt',
+            #             ContentFile(
+            #                 (
+            #                     f'PHIEU KET QUA KHAM\n'
+            #                     f'Ma ho so: {record.record_number}\n'
+            #                     f'Benh nhan: {patient.full_name}\n'
+            #                     f'Ngay kham: {visit_at:%d/%m/%Y %H:%M}\n'
+            #                     f'Chan doan: {case["diagnosis"]}\n'
+            #                     f'Ke hoach dieu tri: {case["plan"]}\n'
+            #                 ).encode('utf-8')
+            #             ),
+            #             save=True,
+            #         )
 
     for index, (patient, _) in enumerate(patients[:20]):
         doctor = doctors[index % len(doctors)]
