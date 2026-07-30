@@ -1,0 +1,247 @@
+.app-shell {
+  min-height: 100dvh;
+  display: grid;
+  grid-template-columns: var(--sidebar-width) minmax(0, 1fr);
+  background: var(--surface-subtle);
+}
+
+.sidebar {
+  height: 100dvh;
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  display: flex;
+  flex-direction: column;
+  padding: 22px 16px 16px;
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+}
+
+.sidebar__header {
+  min-height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 8px;
+}
+
+.sidebar__close,
+.topbar__menu {
+  display: none;
+}
+
+.sidebar__nav {
+  display: grid;
+  align-content: start;
+  gap: 4px;
+  margin-top: 38px;
+}
+
+.sidebar__section-label {
+  margin: 0 12px 8px;
+  color: var(--ink-500);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.nav-item {
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0 12px;
+  color: var(--ink-700);
+  border-radius: var(--radius-sm);
+  font-size: 14px;
+  font-weight: 560;
+  text-decoration: none;
+  transition: color 150ms ease, background 150ms ease;
+}
+
+.nav-item:hover {
+  color: var(--blue-800);
+  background: var(--blue-50);
+}
+
+.nav-item--active {
+  color: var(--blue-800);
+  background: var(--blue-100);
+  font-weight: 680;
+}
+
+.sidebar__profile {
+  min-height: 64px;
+  display: grid;
+  grid-template-columns: 38px minmax(0, 1fr) 38px;
+  align-items: center;
+  gap: 10px;
+  margin-top: auto;
+  padding: 11px 8px 0;
+  border-top: 1px solid var(--border);
+}
+
+.avatar {
+  width: 36px;
+  height: 36px;
+  display: grid;
+  place-items: center;
+  color: var(--blue-900);
+  background: var(--blue-100);
+  border-radius: 50%;
+  font-size: 14px;
+  font-weight: 750;
+}
+
+.sidebar__identity {
+  min-width: 0;
+  display: grid;
+  line-height: 1.25;
+}
+
+.sidebar__identity strong,
+.sidebar__identity small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sidebar__identity strong {
+  color: var(--ink-900);
+  font-size: 13px;
+}
+
+.sidebar__identity small {
+  margin-top: 3px;
+  color: var(--ink-500);
+  font-size: 11px;
+}
+
+.workspace {
+  min-width: 0;
+}
+
+.topbar {
+  height: 72px;
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 0 clamp(20px, 3vw, 42px);
+  background: rgba(255, 255, 255, 0.96);
+  border-bottom: 1px solid var(--border);
+}
+
+.topbar__search {
+  width: min(430px, 42vw);
+  min-height: 40px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 13px;
+  color: var(--ink-500);
+  background: var(--surface-subtle);
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+}
+
+.topbar__search:focus-within {
+  color: var(--blue-700);
+  background: var(--surface);
+  border-color: var(--focus);
+}
+
+.topbar__search input {
+  width: 100%;
+  height: 38px;
+  padding: 0;
+  color: var(--ink-900);
+  background: transparent;
+  border: 0;
+  outline: 0;
+}
+
+.topbar__actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-left: auto;
+}
+
+.topbar__date {
+  color: var(--ink-500);
+  font-size: 13px;
+  text-transform: capitalize;
+}
+
+.workspace__content {
+  width: min(100%, 1480px);
+  margin: 0 auto;
+  padding: 34px clamp(20px, 3vw, 42px) 48px;
+}
+
+.sidebar-backdrop {
+  display: none;
+}
+
+@media (max-width: 1024px) {
+  .app-shell {
+    grid-template-columns: 1fr;
+  }
+
+  .sidebar {
+    width: min(300px, 88vw);
+    position: fixed;
+    left: 0;
+    transform: translateX(-105%);
+    box-shadow: var(--shadow-soft);
+    transition: transform 180ms ease;
+  }
+
+  .sidebar--open {
+    transform: translateX(0);
+  }
+
+  .sidebar__close,
+  .topbar__menu {
+    display: inline-grid;
+  }
+
+  .sidebar-backdrop {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 25;
+    padding: 0;
+    background: rgba(19, 38, 58, 0.38);
+    border: 0;
+  }
+
+  .topbar {
+    padding-inline: 18px;
+  }
+
+  .topbar__search {
+    width: min(480px, 58vw);
+  }
+
+  .topbar__date {
+    display: none;
+  }
+}
+
+@media (max-width: 640px) {
+  .topbar__search {
+    width: 100%;
+  }
+
+  .topbar__actions {
+    display: none;
+  }
+
+  .workspace__content {
+    padding: 24px 16px 36px;
+  }
+}

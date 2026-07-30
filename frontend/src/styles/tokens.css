@@ -1,0 +1,27 @@
+:root {
+  --blue-900: #0b315f;
+  --blue-800: #104b86;
+  --blue-700: #1264a3;
+  --blue-600: #1683c7;
+  --blue-100: #e5f3fb;
+  --blue-50: #f2f9fd;
+  --ink-900: #13263a;
+  --ink-700: #3d5369;
+  --ink-500: #6e8295;
+  --surface: #ffffff;
+  --surface-subtle: #f6f9fc;
+  --border: #dbe5ee;
+  --danger: #bf3f4f;
+  --danger-bg: #fff0f1;
+  --focus: #1683c7;
+  --sidebar-width: 268px;
+  --radius-sm: 5px;
+  --radius-md: 8px;
+  --shadow-soft: 0 12px 36px rgba(35, 71, 104, 0.1);
+  font-family: "Segoe UI", Arial, sans-serif;
+  color: var(--ink-900);
+  background: var(--surface-subtle);
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
