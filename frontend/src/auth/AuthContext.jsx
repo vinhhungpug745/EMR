@@ -1,9 +1,12 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 
 import { getCurrentUser, loginRequest, logoutRequest } from '../api/auth'
+import {
+  ACCESS_TOKEN_KEY,
+  REFRESH_TOKEN_KEY,
+  clearAuthTokens,
+} from '../api/http'
 import { AuthContext } from './auth-context'
-
-const TOKEN_KEY = 'emr_access_token'
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null)
@@ -13,7 +16,10 @@ export function AuthProvider({ children }) {
     let isMounted = true
 
     async function restoreSession() {
-      if (!localStorage.getItem(TOKEN_KEY)) {
+      if (
+        !localStorage.getItem(ACCESS_TOKEN_KEY)
+        && !localStorage.getItem(REFRESH_TOKEN_KEY)
+      ) {
         setIsLoading(false)
         return
       }
@@ -22,7 +28,7 @@ export function AuthProvider({ children }) {
         const data = await getCurrentUser()
         if (isMounted) setUser(data.user)
       } catch {
-        localStorage.removeItem(TOKEN_KEY)
+        clearAuthTokens()
       } finally {
         if (isMounted) setIsLoading(false)
       }
@@ -36,7 +42,8 @@ export function AuthProvider({ children }) {
 
   const login = useCallback(async (credentials) => {
     const data = await loginRequest(credentials)
-    localStorage.setItem(TOKEN_KEY, data.token)
+    localStorage.setItem(ACCESS_TOKEN_KEY, data.access)
+    localStorage.setItem(REFRESH_TOKEN_KEY, data.refresh)
     setUser(data.user)
     return data.user
   }, [])
@@ -45,7 +52,7 @@ export function AuthProvider({ children }) {
     try {
       await logoutRequest()
     } finally {
-      localStorage.removeItem(TOKEN_KEY)
+      clearAuthTokens()
       setUser(null)
     }
   }, [])

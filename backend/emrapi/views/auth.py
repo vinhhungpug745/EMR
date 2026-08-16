@@ -1,50 +1,21 @@
-from django.contrib.auth import authenticate
 from rest_framework import permissions, status
-from rest_framework.authtoken.models import Token
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_framework_simplejwt.exceptions import TokenError
+from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework_simplejwt.views import TokenObtainPairView
 
 from emrapi.models import StaffProfile
-from emrapi.serializers.auth import AuthenticatedUserSerializer, LoginSerializer
+from emrapi.serializers.auth import (
+    AuthenticatedUserSerializer,
+    LoginSerializer,
+    LogoutSerializer,
+)
 
 
-class LoginView(APIView):
+class LoginView(TokenObtainPairView):
     permission_classes = [permissions.AllowAny]
-
-    def post(self, request):
-        serializer = LoginSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-
-        user = authenticate(
-            request=request,
-            username=serializer.validated_data['username'],
-            password=serializer.validated_data['password'],
-        )
-        if user is None:
-            return Response(
-                {'detail': 'Ten dang nhap hoac mat khau khong dung.'},
-                status=status.HTTP_401_UNAUTHORIZED,
-            )
-
-        try:
-            staff = user.staff_profile
-        except StaffProfile.DoesNotExist:
-            return Response(
-                {'detail': 'Tai khoan chua duoc gan ho so nhan vien.'},
-                status=status.HTTP_403_FORBIDDEN,
-            )
-
-        if not staff.active:
-            return Response(
-                {'detail': 'Ho so nhan vien da ngung hoat dong.'},
-                status=status.HTTP_403_FORBIDDEN,
-            )
-
-        token, _ = Token.objects.get_or_create(user=user)
-        return Response({
-            'token': token.key,
-            'user': AuthenticatedUserSerializer(user).data,
-        })
+    serializer_class = LoginSerializer
 
 
 class CurrentUserView(APIView):
@@ -72,6 +43,21 @@ class LogoutView(APIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def post(self, request):
-        if isinstance(request.auth, Token):
-            request.auth.delete()
+        serializer = LogoutSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        try:
+            token = RefreshToken(serializer.validated_data['refresh'])
+            if str(token['user_id']) != str(request.user.pk):
+                return Response(
+                    {'detail': 'Refresh token khong thuoc tai khoan hien tai.'},
+                    status=status.HTTP_403_FORBIDDEN,
+                )
+            token.blacklist()
+        except TokenError:
+            return Response(
+                {'detail': 'Refresh token khong hop le hoac da het han.'},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
         return Response(status=status.HTTP_204_NO_CONTENT)

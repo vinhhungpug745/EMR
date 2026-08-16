@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 """
 
 from pathlib import Path
+from datetime import timedelta
 from dotenv import load_dotenv
 import os
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -30,7 +31,7 @@ SECRET_KEY = os.getenv('SECRET_KEY')
 
 ALLOWED_HOSTS = [
     'localhost',
-    '192.168.1.18',
+    '192.168.1.7',
 ]
 
 
@@ -44,18 +45,24 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
-    'rest_framework.authtoken',
+    'rest_framework_simplejwt.token_blacklist',
     'drf_yasg',
-    'oauth2_provider',
     'cloudinary',
     'emrapi',
 ]
 
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": (
-        "rest_framework.authentication.TokenAuthentication",
-        "oauth2_provider.contrib.rest_framework.OAuth2Authentication",
+        "rest_framework_simplejwt.authentication.JWTAuthentication",
     ),
+}
+
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=30),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
+    'ROTATE_REFRESH_TOKENS': True,
+    'BLACKLIST_AFTER_ROTATION': True,
+    'AUTH_HEADER_TYPES': ('Bearer',),
 }
 
 MIDDLEWARE = [
@@ -67,12 +74,6 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
-
-#
-# OAUTH2_PROVIDER = { 'OAUTH2_BACKEND_CLASS': 'oauth2_provider.oauth2_backends.JSONOAuthLibCore'}
-OAUTH2_PROVIDER = {
-    'OAUTH2_BACKEND_CLASS': 'oauth2_provider.oauth2_backends.OAuthLibCore',
-}
 
 ROOT_URLCONF = 'config.urls'
 

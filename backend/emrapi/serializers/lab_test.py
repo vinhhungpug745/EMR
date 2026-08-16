@@ -6,11 +6,16 @@ from emrapi.models import LabTest
 from .base import ModelCleanSerializer, get_request_staff
 from .doctor_profile import DoctorProfileSummarySerializer
 from .encounter import EncounterSummarySerializer
+from .lab_test_catalog import LabTestCatalogSummarySerializer
 from .lab_technician_profile import LabTechnicianProfileSummarySerializer
 
 
 class LabTestSerializer(ModelCleanSerializer):
     encounter_detail = EncounterSummarySerializer(source='encounter', read_only=True)
+    test_catalog_detail = LabTestCatalogSummarySerializer(
+        source='test_catalog',
+        read_only=True,
+    )
     ordered_by_detail = DoctorProfileSummarySerializer(
         source='ordered_by',
         read_only=True,
@@ -27,7 +32,8 @@ class LabTestSerializer(ModelCleanSerializer):
             'id',
             'encounter',
             'encounter_detail',
-            'test_name',
+            'test_catalog',
+            'test_catalog_detail',
             'ordered_by',
             'ordered_by_detail',
             'performed_by',
@@ -44,6 +50,7 @@ class LabTestSerializer(ModelCleanSerializer):
         read_only_fields = [
             'id',
             'encounter_detail',
+            'test_catalog_detail',
             'ordered_by',
             'ordered_by_detail',
             'performed_by',
@@ -53,6 +60,13 @@ class LabTestSerializer(ModelCleanSerializer):
             'created_at',
             'updated_at',
         ]
+
+    def validate_test_catalog(self, value):
+        if not value.active:
+            raise serializers.ValidationError(
+                'Xet nghiem nay da ngung ap dung.'
+            )
+        return value
 
     def validate(self, attrs):
         attrs = super().validate(attrs)

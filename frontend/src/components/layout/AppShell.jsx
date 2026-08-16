@@ -86,7 +86,7 @@ export function AppShell() {
           </button>
           <div className="topbar__search">
             <Search size={18} aria-hidden="true" />
-            <input type="search" placeholder="Tìm bệnh nhân, hồ sơ, lịch hẹn..." aria-label="Tìm kiếm" />
+            <input type="search" placeholder="Tìm bệnh nhân, hồ sơ, lượt khám..." aria-label="Tìm kiếm" />
           </div>
           <div className="topbar__actions">
             <button className="icon-button" type="button" aria-label="Thông báo">

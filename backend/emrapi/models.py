@@ -1,3 +1,4 @@
+import uuid
 from decimal import Decimal
 
 from django.contrib.auth.models import User
@@ -7,6 +8,10 @@ from django.db import models
 
 from .utils import calculate_years_of_experience
 from .validators import validate_not_future_date
+
+
+def generate_visit_number():
+    return f'VIS-{uuid.uuid4().hex[:12].upper()}'
 
 
 class BaseModel(models.Model):
@@ -188,43 +193,66 @@ class LabTechnicianProfile(BaseModel):
             raise ValidationError({'staff': 'Nhan vien phai co vai tro xet nghiem.'})
 
 
-class Appointment(BaseModel):
+class Visit(BaseModel):
+    class VisitType(models.TextChoices):
+        OUTPATIENT = 'outpatient', 'Ngoai tru'
+        INPATIENT = 'inpatient', 'Noi tru'
+        EMERGENCY = 'emergency', 'Cap cuu'
+
     class Status(models.TextChoices):
-        SCHEDULED = 'scheduled', 'Da dat lich'
         CHECKED_IN = 'checked_in', 'Da tiep nhan'
+        IN_PROGRESS = 'in_progress', 'Dang kham'
         COMPLETED = 'completed', 'Hoan thanh'
         CANCELLED = 'cancelled', 'Da huy'
 
-    patient = models.ForeignKey(Patient, on_delete=models.CASCADE, related_name='appointments')
-    doctor = models.ForeignKey(DoctorProfile,on_delete=models.SET_NULL, related_name='appointments',blank=True, null=True)
-    scheduled_at = models.DateTimeField()
+    medical_record = models.ForeignKey(
+        'MedicalRecord',
+        on_delete=models.CASCADE,
+        related_name='visits',
+    )
+    visit_number = models.CharField(
+        max_length=32,
+        unique=True,
+        default=generate_visit_number,
+        editable=False,
+    )
+    visit_type = models.CharField(
+        max_length=20,
+        choices=VisitType.choices,
+        default=VisitType.OUTPATIENT,
+    )
+    arrived_at = models.DateTimeField()
+    completed_at = models.DateTimeField(blank=True, null=True)
     reason = models.CharField(max_length=255)
-    status = models.CharField(max_length=20, choices=Status.choices, default=Status.SCHEDULED)
+    status = models.CharField(max_length=20, choices=Status.choices, default=Status.CHECKED_IN)
     note = models.TextField(blank=True, null=True)
     created_by = models.ForeignKey(
         StaffProfile,
         on_delete=models.SET_NULL,
-        related_name='created_appointments',
-        blank=True,
-        null=True,
-    )
-    checked_in_by = models.ForeignKey(
-        StaffProfile,
-        on_delete=models.SET_NULL,
-        related_name='checked_in_appointments',
+        related_name='created_visits',
         blank=True,
         null=True,
     )
 
     class Meta:
-        ordering = ['-scheduled_at']
+        ordering = ['-arrived_at']
         indexes = [
-            models.Index(fields=['scheduled_at']),
-            models.Index(fields=['status']),
+            models.Index(fields=['arrived_at'], name='emrapi_vis_arrived_35a117_idx'),
+            models.Index(fields=['status'], name='emrapi_vis_status_4cbf6d_idx'),
+            models.Index(
+                fields=['medical_record', 'arrived_at'],
+                name='emrapi_vis_record_32d17d_idx',
+            ),
         ]
 
     def __str__(self):
-        return f'{self.patient.full_name} - {self.scheduled_at:%Y-%m-%d %H:%M}'
+        return f'{self.visit_number} - {self.medical_record.patient.full_name}'
+
+    def clean(self):
+        if self.status == self.Status.COMPLETED and not self.completed_at:
+            raise ValidationError({'completed_at': 'Lan den da hoan thanh phai co thoi gian ket thuc.'})
+        if self.completed_at and self.completed_at < self.arrived_at:
+            raise ValidationError({'completed_at': 'Thoi gian ket thuc khong duoc truoc thoi gian tiep nhan.'})
 
 
 class MedicalRecord(BaseModel):
@@ -249,22 +277,28 @@ class MedicalRecord(BaseModel):
 
 
 class Encounter(BaseModel):
-    class EncounterType(models.TextChoices):
-        OUTPATIENT = 'outpatient', 'Ngoai tru'
-        INPATIENT = 'inpatient', 'Noi tru'
-        EMERGENCY = 'emergency', 'Cap cuu'
-
     class Status(models.TextChoices):
         CHECKED_IN = 'checked_in', 'Da tiep nhan'
         IN_PROGRESS = 'in_progress', 'Dang kham'
         COMPLETED = 'completed', 'Hoan thanh'
         CANCELLED = 'cancelled', 'Da huy'
 
-    medical_record = models.ForeignKey(MedicalRecord, on_delete=models.CASCADE, related_name='encounters')
-    appointment = models.OneToOneField(
-        Appointment,
+    visit = models.ForeignKey(
+        Visit,
+        on_delete=models.CASCADE,
+        related_name='encounters',
+    )
+    parent_encounter = models.ForeignKey(
+        'self',
         on_delete=models.SET_NULL,
-        related_name='encounter',
+        related_name='referred_encounters',
+        blank=True,
+        null=True,
+    )
+    department = models.ForeignKey(
+        Department,
+        on_delete=models.SET_NULL,
+        related_name='encounters',
         blank=True,
         null=True,
     )
@@ -275,13 +309,9 @@ class Encounter(BaseModel):
         blank=True,
         null=True,
     )
-    encounter_type = models.CharField(
-        max_length=20,
-        choices=EncounterType.choices,
-        default=EncounterType.OUTPATIENT,
-    )
     status = models.CharField(max_length=20, choices=Status.choices, default=Status.CHECKED_IN)
-    visit_date = models.DateTimeField()
+    started_at = models.DateTimeField()
+    completed_at = models.DateTimeField(blank=True, null=True)
     chief_complaint = models.CharField(max_length=255)
     diagnosis = models.TextField(blank=True, null=True)
     treatment_plan = models.TextField(blank=True, null=True)
@@ -295,23 +325,36 @@ class Encounter(BaseModel):
     )
 
     class Meta:
-        ordering = ['-visit_date']
+        ordering = ['-started_at']
         indexes = [
-            models.Index(fields=['visit_date']),
-            models.Index(fields=['status']),
-            models.Index(fields=['medical_record', 'visit_date']),
+            models.Index(fields=['started_at'], name='emrapi_enc_started_6a2558_idx'),
+            models.Index(fields=['status'], name='emrapi_enco_status_e1b572_idx'),
+            models.Index(
+                fields=['visit', 'started_at'],
+                name='emrapi_enc_visit_46bb1f_idx',
+            ),
+            models.Index(
+                fields=['department', 'status'],
+                name='emrapi_enc_dept_8acc95_idx',
+            ),
         ]
 
     def __str__(self):
-        return f'{self.medical_record.patient.full_name} - {self.visit_date:%Y-%m-%d %H:%M}'
+        return f'{self.visit.medical_record.patient.full_name} - {self.started_at:%Y-%m-%d %H:%M}'
 
     def clean(self):
-        if (
-            self.appointment_id
-            and self.medical_record_id
-            and self.appointment.patient_id != self.medical_record.patient_id
-        ):
-            raise ValidationError({'appointment': 'Lich hen va ho so phai thuoc cung mot benh nhan.'})
+        if self.parent_encounter_id:
+            if self.pk and self.parent_encounter_id == self.pk:
+                raise ValidationError({'parent_encounter': 'Luot kham khong the tu chuyen den chinh no.'})
+            if self.visit_id and self.parent_encounter.visit_id != self.visit_id:
+                raise ValidationError({'parent_encounter': 'Luot kham chuyen khoa phai thuoc cung mot lan den.'})
+        if self.status == self.Status.COMPLETED:
+            if not self.diagnosis:
+                raise ValidationError({'diagnosis': 'Luot kham hoan thanh phai co chan doan.'})
+            if not self.completed_at:
+                raise ValidationError({'completed_at': 'Luot kham hoan thanh phai co thoi gian ket thuc.'})
+        if self.completed_at and self.completed_at < self.started_at:
+            raise ValidationError({'completed_at': 'Thoi gian ket thuc khong duoc truoc thoi gian bat dau.'})
 
 
 class VitalSign(BaseModel):
@@ -419,6 +462,24 @@ class PrescriptionItem(BaseModel):
         return f'{self.medication} - {self.dosage}'
 
 
+class LabTestCatalog(BaseModel):
+    code = models.CharField(max_length=40, unique=True)
+    name = models.CharField(max_length=160, unique=True)
+    category = models.CharField(max_length=120, blank=True, null=True)
+    specimen_type = models.CharField(max_length=120, blank=True, null=True)
+    description = models.TextField(blank=True, null=True)
+
+    class Meta:
+        ordering = ['name']
+        indexes = [
+            models.Index(fields=['name'], name='emrapi_labcat_name_565115_idx'),
+            models.Index(fields=['category'], name='emrapi_labcat_cat_55b04e_idx'),
+        ]
+
+    def __str__(self):
+        return f'{self.code} - {self.name}'
+
+
 class LabTest(BaseModel):
     class Status(models.TextChoices):
         ORDERED = 'ordered', 'Da chi dinh'
@@ -427,7 +488,11 @@ class LabTest(BaseModel):
         CANCELLED = 'cancelled', 'Da huy'
 
     encounter = models.ForeignKey(Encounter, on_delete=models.CASCADE, related_name='lab_tests')
-    test_name = models.CharField(max_length=160)
+    test_catalog = models.ForeignKey(
+        LabTestCatalog,
+        on_delete=models.PROTECT,
+        related_name='lab_tests',
+    )
     ordered_by = models.ForeignKey(
         DoctorProfile,
         on_delete=models.SET_NULL,
@@ -455,7 +520,7 @@ class LabTest(BaseModel):
         ]
 
     def __str__(self):
-        return self.test_name
+        return self.test_catalog.name
 
 
 class MedicalAttachment(BaseModel):

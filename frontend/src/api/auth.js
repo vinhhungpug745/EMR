@@ -1,4 +1,4 @@
-import { apiRequest } from './http'
+import { apiRequest, REFRESH_TOKEN_KEY } from './http'
 
 export function loginRequest(credentials) {
   return apiRequest('/auth/login/', {
@@ -12,5 +12,10 @@ export function getCurrentUser() {
 }
 
 export function logoutRequest() {
-  return apiRequest('/auth/logout/', { method: 'POST' })
+  return apiRequest('/auth/logout/', {
+    method: 'POST',
+    body: JSON.stringify({
+      refresh: localStorage.getItem(REFRESH_TOKEN_KEY),
+    }),
+  })
 }

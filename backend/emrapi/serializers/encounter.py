@@ -1,53 +1,49 @@
+from django.utils import timezone
 from rest_framework import serializers
 
 from emrapi.models import Encounter
 
-from .appointment import AppointmentSummarySerializer
 from .base import ModelCleanSerializer, get_request_staff
+from .department import DepartmentSummarySerializer
 from .doctor_profile import DoctorProfileSummarySerializer
-from .medical_record import MedicalRecordSummarySerializer
 from .staff_profile import StaffProfileSummarySerializer
+from .visit import VisitSummarySerializer
 
 
 class EncounterSummarySerializer(ModelCleanSerializer):
     class Meta:
         model = Encounter
-        fields = ['id', 'visit_date', 'chief_complaint', 'status']
+        fields = ['id', 'started_at', 'chief_complaint', 'status']
         read_only_fields = fields
 
 
 class EncounterSerializer(ModelCleanSerializer):
-    medical_record_detail = MedicalRecordSummarySerializer(
-        source='medical_record',
+    visit_detail = VisitSummarySerializer(source='visit', read_only=True)
+    parent_encounter_detail = EncounterSummarySerializer(
+        source='parent_encounter',
         read_only=True,
     )
-    appointment_detail = AppointmentSummarySerializer(
-        source='appointment',
-        read_only=True,
-    )
+    department_detail = DepartmentSummarySerializer(source='department', read_only=True)
     doctor_detail = DoctorProfileSummarySerializer(source='doctor', read_only=True)
     created_by_detail = StaffProfileSummarySerializer(source='created_by', read_only=True)
-    encounter_type_display = serializers.CharField(
-        source='get_encounter_type_display',
-        read_only=True,
-    )
     status_display = serializers.CharField(source='get_status_display', read_only=True)
 
     class Meta:
         model = Encounter
         fields = [
             'id',
-            'medical_record',
-            'medical_record_detail',
-            'appointment',
-            'appointment_detail',
+            'visit',
+            'visit_detail',
+            'parent_encounter',
+            'parent_encounter_detail',
+            'department',
+            'department_detail',
             'doctor',
             'doctor_detail',
-            'encounter_type',
-            'encounter_type_display',
             'status',
             'status_display',
-            'visit_date',
+            'started_at',
+            'completed_at',
             'chief_complaint',
             'diagnosis',
             'treatment_plan',
@@ -60,10 +56,10 @@ class EncounterSerializer(ModelCleanSerializer):
         ]
         read_only_fields = [
             'id',
-            'medical_record_detail',
-            'appointment_detail',
+            'visit_detail',
+            'parent_encounter_detail',
+            'department_detail',
             'doctor_detail',
-            'encounter_type_display',
             'status_display',
             'created_by',
             'created_by_detail',
@@ -72,15 +68,20 @@ class EncounterSerializer(ModelCleanSerializer):
         ]
 
     def validate(self, attrs):
-        attrs = super().validate(attrs)
         status = attrs.get('status', getattr(self.instance, 'status', None))
         diagnosis = attrs.get('diagnosis', getattr(self.instance, 'diagnosis', None))
+        completed_at = attrs.get(
+            'completed_at',
+            getattr(self.instance, 'completed_at', None),
+        )
 
         if status == Encounter.Status.COMPLETED and not diagnosis:
             raise serializers.ValidationError(
                 {'diagnosis': 'Lan kham hoan thanh phai co chan doan.'}
             )
-        return attrs
+        if status == Encounter.Status.COMPLETED and not completed_at:
+            attrs['completed_at'] = timezone.now()
+        return super().validate(attrs)
 
     def create(self, validated_data):
         validated_data['created_by'] = get_request_staff(self)

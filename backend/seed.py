@@ -18,13 +18,13 @@ from django.db import transaction
 from django.utils import timezone
 
 from emrapi.models import (
-    Appointment,
     Department,
     DoctorProfile,
     Encounter,
     GenderChoices,
     LabTechnicianProfile,
     LabTest,
+    LabTestCatalog,
     MedicalAttachment,
     MedicalRecord,
     Medication,
@@ -35,6 +35,7 @@ from emrapi.models import (
     ReceptionistProfile,
     StaffProfile,
     VitalSign,
+    Visit,
 )
 
 
@@ -81,6 +82,49 @@ MEDICATION_QUANTITIES = {
     'Acetylcysteine 200 mg': Decimal('21'),
     'Betahistine 16 mg': Decimal('20'),
 }
+
+LAB_TEST_CATALOG_DATA = [
+    ('XN0001', 'Công thức máu', 'Huyết học', 'Máu toàn phần'),
+    ('XN0002', 'Đường huyết lúc đói', 'Hóa sinh', 'Máu'),
+    ('XN0003', 'Chức năng thận', 'Hóa sinh', 'Máu'),
+    ('XN0004', 'Test Helicobacter pylori', 'Vi sinh', 'Tùy phương pháp'),
+    ('XN0005', 'HbA1c', 'Hóa sinh', 'Máu toàn phần'),
+    ('XN0006', 'Tốc độ máu lắng', 'Huyết học', 'Máu toàn phần'),
+    ('XN0007', 'Nhóm máu ABO', 'Huyết học', 'Máu toàn phần'),
+    ('XN0008', 'Nhóm máu Rh', 'Huyết học', 'Máu toàn phần'),
+    ('XN0009', 'Thời gian Prothrombin (PT)', 'Đông máu', 'Huyết tương'),
+    ('XN0010', 'Thời gian Thromboplastin từng phần hoạt hóa (aPTT)', 'Đông máu', 'Huyết tương'),
+    ('XN0011', 'Fibrinogen', 'Đông máu', 'Huyết tương'),
+    ('XN0012', 'Chức năng gan', 'Hóa sinh', 'Máu'),
+    ('XN0013', 'Bilirubin toàn phần và trực tiếp', 'Hóa sinh', 'Máu'),
+    ('XN0014', 'Mỡ máu', 'Hóa sinh', 'Máu'),
+    ('XN0015', 'Acid uric máu', 'Hóa sinh', 'Máu'),
+    ('XN0016', 'Điện giải đồ', 'Hóa sinh', 'Máu'),
+    ('XN0017', 'Canxi toàn phần', 'Hóa sinh', 'Máu'),
+    ('XN0018', 'Protein toàn phần và Albumin', 'Hóa sinh', 'Máu'),
+    ('XN0019', 'CRP định lượng', 'Miễn dịch', 'Máu'),
+    ('XN0020', 'Ferritin', 'Miễn dịch', 'Máu'),
+    ('XN0021', 'Troponin I', 'Miễn dịch', 'Máu'),
+    ('XN0022', 'TSH', 'Nội tiết', 'Máu'),
+    ('XN0023', 'FT4', 'Nội tiết', 'Máu'),
+    ('XN0024', 'HBsAg', 'Miễn dịch', 'Máu'),
+    ('XN0025', 'Anti-HBs', 'Miễn dịch', 'Máu'),
+    ('XN0026', 'Anti-HCV', 'Miễn dịch', 'Máu'),
+    ('XN0027', 'HIV Ag/Ab', 'Miễn dịch', 'Máu'),
+    ('XN0028', 'Dengue NS1', 'Miễn dịch', 'Máu'),
+    ('XN0029', 'Dengue IgM/IgG', 'Miễn dịch', 'Máu'),
+    ('XN0030', 'Tổng phân tích nước tiểu', 'Nước tiểu', 'Nước tiểu'),
+    ('XN0031', 'Microalbumin niệu', 'Nước tiểu', 'Nước tiểu'),
+    ('XN0032', 'Beta-hCG', 'Nội tiết', 'Máu'),
+    ('XN0033', 'Soi tươi và nhuộm Gram', 'Vi sinh', 'Dịch bệnh phẩm'),
+    ('XN0034', 'Cấy nước tiểu và kháng sinh đồ', 'Vi sinh', 'Nước tiểu'),
+    ('XN0035', 'Cấy máu và kháng sinh đồ', 'Vi sinh', 'Máu'),
+    ('XN0036', 'Cấy đờm và kháng sinh đồ', 'Vi sinh', 'Đờm'),
+    ('XN0037', 'Soi ký sinh trùng đường ruột', 'Ký sinh trùng', 'Phân'),
+    ('XN0038', 'Máu ẩn trong phân', 'Hóa sinh', 'Phân'),
+    ('XN0039', 'Kháng nguyên SARS-CoV-2', 'Vi sinh', 'Dịch tỵ hầu'),
+    ('XN0040', 'Test nhanh cúm A/B', 'Vi sinh', 'Dịch tỵ hầu'),
+]
 
 STAFF_DATA = [
     {
@@ -494,6 +538,22 @@ def seed_medications():
     return medications
 
 
+def seed_lab_test_catalogs():
+    catalogs = {}
+    for code, name, category, specimen_type in LAB_TEST_CATALOG_DATA:
+        catalog, _ = LabTestCatalog.objects.update_or_create(
+            name=name,
+            defaults={
+                'code': code,
+                'category': category,
+                'specimen_type': specimen_type,
+                'active': True,
+            },
+        )
+        catalogs[name] = catalog
+    return catalogs
+
+
 def seed_staff(departments):
     staff_by_role = {
         StaffProfile.Role.ADMIN: [],
@@ -659,7 +719,14 @@ def decimal_value(value):
     return Decimal(str(round(value, 1)))
 
 
-def seed_encounter_details(encounter, case, doctor, technician, medications):
+def seed_encounter_details(
+    encounter,
+    case,
+    doctor,
+    technician,
+    medications,
+    lab_test_catalogs,
+):
     prescription, _ = Prescription.objects.update_or_create(
         encounter=encounter,
         note='Đơn thuốc điều trị ngoại trú.',
@@ -670,7 +737,7 @@ def seed_encounter_details(encounter, case, doctor, technician, medications):
         },
     )
     Prescription.objects.filter(pk=prescription.pk).update(
-        created_at=encounter.visit_date + timedelta(minutes=30),
+        created_at=encounter.started_at + timedelta(minutes=30),
     )
     for medicine_name, dosage, frequency, duration, instruction in case['medicines']:
         medication = medications[medicine_name]
@@ -690,22 +757,27 @@ def seed_encounter_details(encounter, case, doctor, technician, medications):
     for test_name, result in case['tests']:
         lab_test, _ = LabTest.objects.update_or_create(
             encounter=encounter,
-            test_name=test_name,
+            test_catalog=lab_test_catalogs[test_name],
             defaults={
                 'ordered_by': doctor,
                 'performed_by': technician,
-                'performed_at': encounter.visit_date + timedelta(hours=2),
+                'performed_at': encounter.started_at + timedelta(hours=2),
                 'result': result,
                 'status': LabTest.Status.COMPLETED,
                 'active': True,
             },
         )
         LabTest.objects.filter(pk=lab_test.pk).update(
-            ordered_at=encounter.visit_date + timedelta(minutes=20),
+            ordered_at=encounter.started_at + timedelta(minutes=20),
         )
 
 
-def seed_encounters(patients, staff_by_role, medications):
+def seed_visits_and_encounters(
+    patients,
+    staff_by_role,
+    medications,
+    lab_test_catalogs,
+):
     receptionists = staff_by_role[StaffProfile.Role.RECEPTIONIST]
     nurses = staff_by_role[StaffProfile.Role.NURSE]
     doctors = [
@@ -729,47 +801,44 @@ def seed_encounters(patients, staff_by_role, medications):
             days_ago = (visit_count - visit_index) * 70 + patient_index * 3
             visit_at = ANCHOR_TIME - timedelta(days=days_ago)
             encounter_status = Encounter.Status.COMPLETED
-            appointment_status = Appointment.Status.COMPLETED
 
             if patient_index == 0 and visit_index == visit_count - 1:
                 visit_at = ANCHOR_TIME
                 encounter_status = Encounter.Status.CHECKED_IN
-                appointment_status = Appointment.Status.CHECKED_IN
             elif patient_index == 1 and visit_index == visit_count - 1:
                 visit_at = ANCHOR_TIME + timedelta(minutes=30)
                 encounter_status = Encounter.Status.IN_PROGRESS
-                appointment_status = Appointment.Status.CHECKED_IN
 
-            appointment, _ = Appointment.objects.update_or_create(
-                patient=patient,
-                scheduled_at=visit_at,
+            is_completed = encounter_status == Encounter.Status.COMPLETED
+            visit, _ = Visit.objects.update_or_create(
+                medical_record=record,
+                arrived_at=visit_at,
                 defaults={
-                    'doctor': doctor,
+                    'visit_type': (
+                        Visit.VisitType.EMERGENCY
+                        if patient_index % 13 == 0
+                        else Visit.VisitType.OUTPATIENT
+                    ),
                     'reason': case['reason'],
-                    'status': appointment_status,
-                    'note': 'Dữ liệu lịch hẹn phục vụ kiểm thử.',
+                    'status': encounter_status,
+                    'completed_at': visit_at + timedelta(hours=1) if is_completed else None,
+                    'note': 'Lần đến khám trực tiếp tại cơ sở y tế.',
                     'created_by': receptionist,
-                    'checked_in_by': receptionist,
                     'active': True,
                 },
             )
-            Appointment.objects.filter(pk=appointment.pk).update(
-                created_at=visit_at - timedelta(days=2),
+            Visit.objects.filter(pk=visit.pk).update(
+                created_at=visit_at,
             )
 
-            is_completed = encounter_status == Encounter.Status.COMPLETED
             encounter, _ = Encounter.objects.update_or_create(
-                medical_record=record,
-                visit_date=visit_at,
+                visit=visit,
+                started_at=visit_at + timedelta(minutes=15),
                 defaults={
-                    'appointment': appointment,
+                    'department': doctor.staff.department,
                     'doctor': doctor,
-                    'encounter_type': (
-                        Encounter.EncounterType.EMERGENCY
-                        if patient_index % 13 == 0
-                        else Encounter.EncounterType.OUTPATIENT
-                    ),
                     'status': encounter_status,
+                    'completed_at': visit_at + timedelta(hours=1) if is_completed else None,
                     'chief_complaint': case['reason'],
                     'diagnosis': case['diagnosis'] if is_completed else None,
                     'treatment_plan': case['plan'] if is_completed else None,
@@ -809,6 +878,7 @@ def seed_encounters(patients, staff_by_role, medications):
                     doctor,
                     technician,
                     medications,
+                    lab_test_catalogs,
                 )
 
             # Tam ngung tao tep dinh kem mau de seed khong ghi file vat ly.
@@ -841,39 +911,20 @@ def seed_encounters(patients, staff_by_role, medications):
             #             save=True,
             #         )
 
-    for index, (patient, _) in enumerate(patients[:20]):
-        doctor = doctors[index % len(doctors)]
-        receptionist = receptionists[index % len(receptionists)]
-        scheduled_at = ANCHOR_TIME + timedelta(days=7 + index, hours=index % 5)
-        status = Appointment.Status.CANCELLED if index % 7 == 0 else Appointment.Status.SCHEDULED
-        Appointment.objects.update_or_create(
-            patient=patient,
-            scheduled_at=scheduled_at,
-            defaults={
-                'doctor': doctor,
-                'reason': CLINICAL_CASES[index % len(CLINICAL_CASES)]['reason'],
-                'status': status,
-                'note': 'Lịch hẹn tái khám.',
-                'created_by': receptionist,
-                'checked_in_by': None,
-                'active': True,
-            },
-        )
-
-
 def print_summary():
     print('\nSeed dữ liệu EMR thành công.')
     print(f'  Khoa/phòng:       {Department.objects.count()}')
     print(f'  Nhân viên:        {StaffProfile.objects.count()}')
     print(f'  Bệnh nhân:        {Patient.objects.count()}')
     print(f'  Hồ sơ EMR:        {MedicalRecord.objects.count()}')
-    print(f'  Lịch hẹn:         {Appointment.objects.count()}')
+    print(f'  Lần đến khám:     {Visit.objects.count()}')
     print(f'  Lần khám:         {Encounter.objects.count()}')
     print(f'  Bản ghi sinh hiệu:{VitalSign.objects.count():>9}')
     print(f'  Danh mục thuốc:   {Medication.objects.count()}')
     print(f'  Đơn thuốc:        {Prescription.objects.count()}')
     print(f'  Thuốc trong đơn:  {PrescriptionItem.objects.count()}')
     print(f'  Xét nghiệm:       {LabTest.objects.count()}')
+    print(f'  Danh mục XN:      {LabTestCatalog.objects.count()}')
     print(f'  Tệp đính kèm:     {MedicalAttachment.objects.count()}')
     print('\nTài khoản quản trị demo:')
     print('  Username: admin_emr')
@@ -885,11 +936,17 @@ def print_summary():
 def run():
     departments = seed_departments()
     medications = seed_medications()
+    lab_test_catalogs = seed_lab_test_catalogs()
     staff_by_role = seed_staff(departments)
     patients = seed_patients_and_records(
         staff_by_role[StaffProfile.Role.RECEPTIONIST]
     )
-    seed_encounters(patients, staff_by_role, medications)
+    seed_visits_and_encounters(
+        patients,
+        staff_by_role,
+        medications,
+        lab_test_catalogs,
+    )
     print_summary()
 
 

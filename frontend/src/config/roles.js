@@ -45,16 +45,16 @@ export const ROLE_CONFIG = {
   receptionist: {
     label: 'Nhân viên tiếp nhận',
     greeting: 'Tiếp nhận và điều phối khám',
-    description: 'Quản lý lịch hẹn, hồ sơ bệnh nhân và hàng đợi trong ngày.',
+    description: 'Tiếp nhận trực tiếp, quản lý hồ sơ bệnh nhân và hàng đợi trong ngày.',
     nav: [
       sharedDashboard,
       { id: 'reception', label: 'Tiếp nhận', path: '/app/reception', icon: ClipboardList },
-      { id: 'appointments', label: 'Lịch hẹn', path: '/app/appointments', icon: CalendarDays },
+      { id: 'visits', label: 'Lần đến khám', path: '/app/visits', icon: CalendarDays },
       { id: 'patients', label: 'Bệnh nhân', path: '/app/patients', icon: Users },
       { id: 'queue', label: 'Hàng đợi khám', path: '/app/queue', icon: ListChecks },
     ],
     focus: [
-      { label: 'Lịch hẹn hôm nay', value: 'Mở danh sách', icon: CalendarDays },
+      { label: 'Lần đến hôm nay', value: 'Mở danh sách', icon: CalendarDays },
       { label: 'Tiếp nhận trực tiếp', value: 'Tạo lượt khám', icon: ClipboardList },
       { label: 'Hàng đợi hiện tại', value: 'Điều phối', icon: ListChecks },
     ],
@@ -82,7 +82,7 @@ export const ROLE_CONFIG = {
     nav: [
       sharedDashboard,
       { id: 'doctor-queue', label: 'Chờ khám', path: '/app/doctor-queue', icon: ListChecks },
-      { id: 'schedule', label: 'Lịch khám', path: '/app/schedule', icon: CalendarDays },
+      { id: 'encounters', label: 'Lượt khám', path: '/app/encounters', icon: CalendarDays },
       { id: 'medical-records', label: 'Hồ sơ bệnh án', path: '/app/medical-records', icon: BookOpenText },
       { id: 'lab-tests', label: 'Xét nghiệm', path: '/app/lab-tests', icon: FlaskConical },
       { id: 'prescriptions', label: 'Đơn thuốc', path: '/app/prescriptions', icon: Pill },
