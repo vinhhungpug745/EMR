@@ -3,7 +3,7 @@ export const USER_ROLE_OPTIONS = [
   { value: 'receptionist', label: 'Nhân viên tiếp nhận' },
   { value: 'nurse', label: 'Điều dưỡng' },
   { value: 'doctor', label: 'Bác sĩ' },
-  { value: 'lab_technician', label: 'Kỹ thuật viên xét nghiệm' },
+  { value: 'lab_technician', label: 'Nhân viên xét nghiệm' },
 ]
 
 export const GENDER_OPTIONS = [

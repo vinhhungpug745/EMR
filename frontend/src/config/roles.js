@@ -94,7 +94,7 @@ export const ROLE_CONFIG = {
     ],
   },
   lab_technician: {
-    label: 'Kỹ thuật viên xét nghiệm',
+    label: 'Nhân viên xét nghiệm',
     greeting: 'Quản lý chỉ định xét nghiệm',
     description: 'Tiếp nhận mẫu, cập nhật tiến độ và trả kết quả lâm sàng.',
     nav: [

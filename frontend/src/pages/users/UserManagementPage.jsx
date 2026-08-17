@@ -163,7 +163,7 @@ export default function UserManagementPage() {
         />
         <StatItem
           icon={FlaskConical}
-          label="Kỹ thuật viên xét nghiệm"
+          label="Nhân viên xét nghiệm"
           value={summary.labTechnicians}
           tone="purple"
         />
