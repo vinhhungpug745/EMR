@@ -19,7 +19,7 @@ from .nurse_profile import NurseProfileSerializer
 from .patient import PatientSerializer, PatientSummarySerializer
 from .prescription import PrescriptionItemSerializer, PrescriptionSerializer
 from .receptionist_profile import ReceptionistProfileSerializer
-from .staff_profile import StaffProfileSerializer, StaffProfileSummarySerializer
+from .staff_profile import StaffProfileSerializer, StaffProfileSummarySerializer,MyProfileSerializer
 from .user import UserSerializer, UserSummarySerializer
 from .vital_sign import VitalSignSerializer
 from .visit import VisitSerializer, VisitSummarySerializer
@@ -53,6 +53,7 @@ __all__ = [
     'ReceptionistProfileSerializer',
     'StaffProfileSerializer',
     'StaffProfileSummarySerializer',
+    'MyProfileSerializer',
     'UserSerializer',
     'UserSummarySerializer',
     'VitalSignSerializer',

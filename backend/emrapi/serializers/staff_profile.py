@@ -7,6 +7,43 @@ from .department import DepartmentSummarySerializer
 from .user import UserSummarySerializer
 
 
+class ProfessionalProfileMixin:
+    def get_professional_profile(self, obj):
+        if obj.role == StaffProfile.Role.DOCTOR:
+            from .doctor_profile import DoctorProfileSerializer
+            try:
+                profile = obj.doctor_profile
+            except obj.doctor_profile.RelatedObjectDoesNotExist:
+                return None
+            return DoctorProfileSerializer(profile, context=self.context).data
+
+        if obj.role == StaffProfile.Role.NURSE:
+            from .nurse_profile import NurseProfileSerializer
+            try:
+                profile = obj.nurse_profile
+            except obj.nurse_profile.RelatedObjectDoesNotExist:
+                return None
+            return NurseProfileSerializer(profile, context=self.context).data
+
+        if obj.role == StaffProfile.Role.RECEPTIONIST:
+            from .receptionist_profile import ReceptionistProfileSerializer
+            try:
+                profile = obj.receptionist_profile
+            except obj.receptionist_profile.RelatedObjectDoesNotExist:
+                return None
+            return ReceptionistProfileSerializer(profile, context=self.context).data
+
+        if obj.role == StaffProfile.Role.LAB_TECHNICIAN:
+            from .lab_technician_profile import LabTechnicianProfileSerializer
+            try:
+                profile = obj.lab_technician_profile
+            except obj.lab_technician_profile.RelatedObjectDoesNotExist:
+                return None
+            return LabTechnicianProfileSerializer(profile, context=self.context).data
+
+        return None
+
+
 class StaffProfileSummarySerializer(ModelCleanSerializer):
     full_name = serializers.SerializerMethodField()
     role_display = serializers.CharField(source='get_role_display', read_only=True)
@@ -20,18 +57,17 @@ class StaffProfileSummarySerializer(ModelCleanSerializer):
         return obj.user.get_full_name() or obj.user.username
 
 
-class StaffProfileSerializer(ModelCleanSerializer):
+class StaffProfileSerializer(ProfessionalProfileMixin,ModelCleanSerializer):
     user_detail = UserSummarySerializer(source='user', read_only=True)
     department_detail = DepartmentSummarySerializer(source='department', read_only=True)
     role_display = serializers.CharField(source='get_role_display', read_only=True)
+    professional_profile = serializers.SerializerMethodField()
 
     class Meta:
         model = StaffProfile
         fields = [
             'id',
-            'user',
             'user_detail',
-            'department',
             'department_detail',
             'role',
             'role_display',
@@ -39,14 +75,56 @@ class StaffProfileSerializer(ModelCleanSerializer):
             'phone',
             'gender',
             'active',
+            'professional_profile',
             'created_at',
             'updated_at',
         ]
         read_only_fields = [
             'id',
+            'role',
             'user_detail',
             'department_detail',
             'role_display',
             'created_at',
             'updated_at',
         ]
+
+
+class MyProfileSerializer(ProfessionalProfileMixin,ModelCleanSerializer):
+    user_detail = UserSummarySerializer(source='user',read_only=True)
+    department_detail = DepartmentSummarySerializer(source='department',read_only=True)
+    role_display = serializers.CharField(source='get_role_display',read_only=True)
+
+    professional_profile = serializers.SerializerMethodField()
+
+    class Meta:
+        model = StaffProfile
+
+        fields = [
+            'id',
+            'user_detail',
+            'department_detail',
+            'role',
+            'role_display',
+            'employee_code',
+            'phone',
+            'gender',
+            'active',
+            'professional_profile',
+            'created_at',
+            'updated_at',
+        ]
+
+        read_only_fields = [
+            'id',
+            'user_detail',
+            'department_detail',
+            'role',
+            'role_display',
+            'employee_code',
+            'professional_profile',
+            'active',
+            'created_at',
+            'updated_at',
+        ]
+

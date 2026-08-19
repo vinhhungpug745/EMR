@@ -5,6 +5,7 @@ import { AppShell } from './components/layout/AppShell'
 import { DashboardPage } from './pages/DashboardPage'
 import { LoginPage } from './pages/LoginPage'
 import { ModulePage } from './pages/ModulePage'
+import StaffProfileManagementPage from './pages/staff/StaffProfileManagementPage'
 import UserManagementPage from './pages/users/UserManagementPage'
 
 function App() {
@@ -15,6 +16,7 @@ function App() {
         <Route path="/app" element={<AppShell />}>
           <Route index element={<DashboardPage />} />
           <Route path="users" element={<UserManagementPage />} />
+          <Route path="staff" element={<StaffProfileManagementPage />} />
           <Route path=":moduleId" element={<ModulePage />} />
         </Route>
       </Route>

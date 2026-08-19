@@ -11,6 +11,7 @@ class UserStaffProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = StaffProfile
         fields = [
+            'id',
             'department',
             'role',
             'employee_code',
@@ -21,6 +22,7 @@ class UserStaffProfileSerializer(serializers.ModelSerializer):
         extra_kwargs = {
             'employee_code': {'validators': []},
         }
+        read_only_fields = ['id']
 
 
 class UserSummarySerializer(serializers.ModelSerializer):

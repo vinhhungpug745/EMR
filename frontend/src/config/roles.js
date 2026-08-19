@@ -31,7 +31,7 @@ export const ROLE_CONFIG = {
     nav: [
       sharedDashboard,
       { id: 'users', label: 'Tài khoản', path: '/app/users', icon: Users },
-      { id: 'staff', label: 'Nhân viên', path: '/app/staff', icon: UserRound },
+      { id: 'staff', label: 'Hồ sơ nhân viên', path: '/app/staff', icon: UserRound },
       { id: 'departments', label: 'Khoa', path: '/app/departments', icon: Building2 },
       { id: 'medications', label: 'Danh mục thuốc', path: '/app/medications', icon: Pill },
       { id: 'audit-logs', label: 'Nhật ký hệ thống', path: '/app/audit-logs', icon: FileClock },

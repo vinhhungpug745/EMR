@@ -6,6 +6,7 @@ from emrapi.serializers import UserSerializer
 
 
 class UserViewSet(viewsets.ModelViewSet):
+    http_method_names = ['get', 'post', 'patch', 'head', 'options']
     queryset = User.objects.select_related(
         'staff_profile__department'
     ).order_by('username')

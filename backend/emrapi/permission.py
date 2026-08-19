@@ -9,11 +9,9 @@ class IsEMRAdmin(BasePermission):
         if not request.user.is_authenticated or not request.user.is_active:
             return False
 
-        try:
-            staff_profile = request.user.staff_profile
-            return (
-                staff_profile.active
-                and staff_profile.role == StaffProfile.Role.ADMIN
-            )
-        except StaffProfile.DoesNotExist:
-            return False
+        staff_profile = getattr(request.user, 'staff_profile', None)
+        return bool(
+            staff_profile
+            and staff_profile.active
+            and staff_profile.role == StaffProfile.Role.ADMIN
+        )

@@ -143,7 +143,8 @@
 
 .users-toolbar select,
 .user-form select,
-.user-form input:not([type="checkbox"]) {
+.user-form input:not([type="checkbox"]),
+.user-form textarea {
   width: 100%;
   min-height: 40px;
   padding: 0 11px;
@@ -158,7 +159,8 @@
 
 .users-toolbar select:focus,
 .user-form select:focus,
-.user-form input:not([type="checkbox"]):focus {
+.user-form input:not([type="checkbox"]):focus,
+.user-form textarea:focus {
   border-color: var(--focus);
   box-shadow: 0 0 0 3px rgba(22, 131, 199, 0.12);
 }
@@ -167,6 +169,11 @@
 .users-pagination button:disabled {
   cursor: default;
   opacity: 0.4;
+}
+
+.users-table__actions .icon-button:disabled {
+  cursor: default;
+  opacity: 0.35;
 }
 
 .is-spinning {
@@ -240,6 +247,15 @@
 .users-table th:nth-child(4) { width: 16%; }
 .users-table th:nth-child(5) { width: 14%; }
 .users-table th:last-child { width: 10%; }
+
+.staff-profiles-table {
+  min-width: 760px;
+}
+
+.staff-profiles-table th:first-child { width: 42%; }
+.staff-profiles-table th:nth-child(2) { width: 20%; }
+.staff-profiles-table th:nth-child(3) { width: 26%; }
+.staff-profiles-table th:last-child { width: 12%; }
 
 .users-table tbody tr:last-child td {
   border-bottom: 0;
@@ -471,7 +487,37 @@
 
 .user-form__field > input,
 .user-form__field > select,
+.user-form__field > textarea,
 .user-form__field > .password-input {
+  align-self: start;
+}
+
+.user-form__field > textarea {
+  min-height: 96px;
+  padding-top: 10px;
+  resize: vertical;
+}
+
+.user-form__field--wide {
+  grid-column: 1 / -1;
+}
+
+.professional-modal {
+  width: min(760px, 100%);
+}
+
+.professional-modal__loading {
+  min-height: 180px;
+  display: grid;
+  place-items: center;
+  color: var(--ink-500);
+  background: var(--surface-subtle);
+  border: 1px dashed var(--border);
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+}
+
+.professional-modal__status {
   align-self: start;
 }
 
