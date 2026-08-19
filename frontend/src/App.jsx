@@ -7,6 +7,7 @@ import { LoginPage } from './pages/LoginPage'
 import { ModulePage } from './pages/ModulePage'
 import StaffProfileManagementPage from './pages/staff/StaffProfileManagementPage'
 import UserManagementPage from './pages/users/UserManagementPage'
+import DepartmentPage from './pages/departments/DepartmentPage'
 
 function App() {
   return (
@@ -17,6 +18,7 @@ function App() {
           <Route index element={<DashboardPage />} />
           <Route path="users" element={<UserManagementPage />} />
           <Route path="staff" element={<StaffProfileManagementPage />} />
+          <Route path="departments" element={<DepartmentPage />} />
           <Route path=":moduleId" element={<ModulePage />} />
         </Route>
       </Route>

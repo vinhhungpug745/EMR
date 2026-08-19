@@ -20,5 +20,5 @@ class DepartmentSerializer(ModelCleanSerializer):
 class DepartmentSummarySerializer(ModelCleanSerializer):
     class Meta:
         model = Department
-        fields = ['id', 'name']
+        fields = ['id', 'name', 'description', 'active']
         read_only_fields = fields

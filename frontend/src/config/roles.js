@@ -34,11 +34,13 @@ export const ROLE_CONFIG = {
       { id: 'staff', label: 'Hồ sơ nhân viên', path: '/app/staff', icon: UserRound },
       { id: 'departments', label: 'Khoa', path: '/app/departments', icon: Building2 },
       { id: 'medications', label: 'Danh mục thuốc', path: '/app/medications', icon: Pill },
+      { id: 'lab-test-catalogs', label: 'Danh mục xét nghiệm', path: '/app/lab-test-catalogs', icon: FlaskConical },
       { id: 'audit-logs', label: 'Nhật ký hệ thống', path: '/app/audit-logs', icon: FileClock },
     ],
     focus: [
       { label: 'Tài khoản người dùng', value: 'Quản lý', icon: Users },
       { label: 'Danh mục thuốc', value: 'Theo dõi', icon: Pill },
+      { label: 'Danh mục xét nghiệm', value: 'Cập nhật', icon: FlaskConical },
       { label: 'Nhật ký truy cập', value: 'Kiểm tra', icon: FileClock },
     ],
   },
