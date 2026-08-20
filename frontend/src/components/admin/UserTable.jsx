@@ -30,6 +30,14 @@ export default function UserTable({
     <section className="users-table-panel" aria-label="Danh sách người dùng">
       <div className="users-table-scroll">
         <table className="users-table user-management-table">
+           <colgroup>
+            <col style={{ width: '20%' }} />  
+            <col style={{ width: '12%' }} />   
+            <col style={{ width: '23%' }} />   
+            <col style={{ width: '20%' }} />   
+            <col style={{ width: '5%' }} />   
+            <col style={{ width: '18%' }} />   
+          </colgroup>
           <thead>
             <tr>
               <th>Người dùng</th>
@@ -129,7 +137,7 @@ function UserRow({
       </td>
       <td>
         <span className={`status-label status-label--${user.is_active ? 'active' : 'inactive'}`}>
-          <i aria-hidden="true" />
+          
           {user.is_active ? 'Đang hoạt động' : 'Đã khóa'}
         </span>
       </td>

@@ -506,7 +506,7 @@
   background: var(--blue-100);
   border-radius: 50%;
   font-size: 12px;
-  font-weight: 800;
+  font-weight: 650;
 }
 
 .users-table__code {
@@ -537,7 +537,12 @@
   display: inline-flex;
   align-items: center;
   gap: 7px;
-  color: var(--ink-700);
+  min-height: 30px;
+  padding: 0 11px;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 800;
   white-space: nowrap;
 }
 
@@ -547,8 +552,21 @@
   border-radius: 50%;
 }
 
-.status-label--active i { background: #32956a; }
-.status-label--inactive i { background: #c1505e; }
+.status-label--active {
+  color: #166534;
+  background: #dcfce7;
+  border-color: #bbf7d0;
+}
+
+.status-label--active i { background: #16a34a; }
+
+.status-label--inactive {
+  color: #991b1b;
+  background: #fee2e2;
+  border-color: #fecaca;
+}
+
+.status-label--inactive i { background: #dc2626; }
 
 .users-table__actions {
   display: flex;

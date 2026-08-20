@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useState } from 'react'
 import {
   UserPlus,
 } from 'lucide-react'
@@ -11,81 +11,70 @@ import {
   updateUser,
 } from '../../api/users'
 import { useAuth } from '../../auth/useAuth'
-import UserFormModal from '../../components/users/UserFormModal'
-import UserTable from '../../components/users/UserTable'
-import UserToolbar from '../../components/users/UserToolbar'
-import { Snackbar } from '../../utils/Snackbar'
+import UserFormModal from '../../components/admin/UserFormModal'
+import UserTable from '../../components/admin/UserTable'
+import UserToolbar from '../../components/admin/UserToolbar'
+import { Snackbar } from '../../components/common/Snackbar'
+import { usePaginatedResource } from '../../utils/usePaginatedResource'
+import { useStatusToggle } from '../../utils/useStatusToggle'
 
-const SEARCH_DELAY = 350
 const PAGE_SIZE = 8
 
 export default function UserManagementPage() {
   const { user: currentUser } = useAuth()
-  const [users, setUsers] = useState([])
-  const [isLoading, setIsLoading] = useState(true)
-  const [errorMessage, setErrorMessage] = useState('')
   const [search, setSearch] = useState('')
   const [roleFilter, setRoleFilter] = useState('all')
   const [statusFilter, setStatusFilter] = useState('all')
   const [ordering, setOrdering] = useState('username')
-  const [page, setPage] = useState(1)
-  const [pagination, setPagination] = useState({
-    count: 0,
-    next: null,
-    previous: null,
-  })
   const [selectedUser, setSelectedUser] = useState(null)
   const [isFormOpen, setIsFormOpen] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
   const [formError, setFormError] = useState(null)
-  const [pendingStatusChange, setPendingStatusChange] = useState(null)
-  const [changingUserId, setChangingUserId] = useState(null)
-  const [snackbar, setSnackbar] = useState(null)
 
-  const loadUsers = useCallback(async () => {
-    setIsLoading(true)
-    setErrorMessage('')
+  const fetchUsers = useCallback(({ page, pageSize }) => getUsers({
+    search,
+    ordering,
+    role: roleFilter,
+    status: statusFilter,
+    page,
+    pageSize,
+  }), [ordering, roleFilter, search, statusFilter])
 
-    try {
-      const data = await getUsers({
-        search,
-        ordering,
-        role: roleFilter,
-        status: statusFilter,
-        page,
-        pageSize: PAGE_SIZE,
-      })
-      setUsers(data.results || [])
-      setPagination({
-        count: data.count || 0,
-        next: data.next,
-        previous: data.previous,
-      })
-    } catch (error) {
-      setErrorMessage(error.message || 'Không thể tải danh sách tài khoản.')
-    } finally {
-      setIsLoading(false)
-    }
-  }, [ordering, page, roleFilter, search, statusFilter])
+  const {
+    items: users,
+    page,
+    setPage,
+    pageSize,
+    pagination,
+    isLoading,
+    errorMessage,
+    loadItems: loadUsers,
+  } = usePaginatedResource({
+    fetchPage: fetchUsers,
+    resetKey: `${ordering}|${roleFilter}|${search}|${statusFilter}`,
+    pageSize: PAGE_SIZE,
+    errorFallback: 'Không thể tải danh sách tài khoản.',
+  })
 
-  useEffect(() => {
-    setPage(1)
-  }, [ordering, roleFilter, search, statusFilter])
-
-  useEffect(() => {
-    const timer = window.setTimeout(loadUsers, SEARCH_DELAY)
-    return () => window.clearTimeout(timer)
-  }, [loadUsers])
-
-  useEffect(() => {
-    if (!snackbar || snackbar.type === 'confirm') return undefined
-
-    const timer = window.setTimeout(() => {
-      setSnackbar(null)
-    }, 3000)
-
-    return () => window.clearTimeout(timer)
-  }, [snackbar])
+  const {
+    snackbar,
+    updatingId: changingUserId,
+    requestStatusChange,
+    cancelStatusChange,
+    confirmStatusChange,
+  } = useStatusToggle({
+    updateStatus: (user, nextActive) => changeUserStatus(user.id, nextActive),
+    getName: (user) => user.username,
+    getCurrentStatus: (user) => user.is_active,
+    getConfirmMessage: (user) => (
+      `Bạn có chắc muốn ${user.is_active ? 'khóa' : 'mở khóa'} tài khoản ${user.username}?`
+    ),
+    getSuccessMessage: (user) => (
+      `Đã ${user.is_active ? 'khóa' : 'mở khóa'} tài khoản ${user.username}.`
+    ),
+    onSuccess: loadUsers,
+    errorFallback: 'Không thể cập nhật trạng thái tài khoản.',
+  })
 
   if (currentUser.role !== 'admin') {
     return <Navigate to="/app" replace />
@@ -130,49 +119,6 @@ export default function UserManagementPage() {
     }
   }
 
-  function requestStatusChange(user) {
-    const action = user.is_active ? 'khóa' : 'mở khóa'
-
-    setPendingStatusChange(user)
-    setSnackbar({
-      type: 'confirm',
-      message: `Bạn có chắc muốn ${action} tài khoản ${user.username}?`,
-    })
-  }
-
-  async function confirmStatusChange() {
-    if (!pendingStatusChange) return
-
-    const user = pendingStatusChange
-    const actionResult = user.is_active ? 'khóa' : 'mở khóa'
-
-    setErrorMessage('')
-    setSnackbar(null)
-    setChangingUserId(user.id)
-
-    try {
-      await changeUserStatus(user.id, !user.is_active)
-      await loadUsers()
-      setSnackbar({
-        type: 'success',
-        message: `Đã ${actionResult} tài khoản ${user.username}.`,
-      })
-    } catch (error) {
-      setSnackbar({
-        type: 'error',
-        message: error.message || 'Không thể cập nhật trạng thái tài khoản.',
-      })
-    } finally {
-      setChangingUserId(null)
-      setPendingStatusChange(null)
-    }
-  }
-
-  function cancelStatusChange() {
-    setPendingStatusChange(null)
-    setSnackbar(null)
-  }
-
   return (
     <div className="users-page">
       <header className="users-page__header">
@@ -211,7 +157,7 @@ export default function UserManagementPage() {
         isLoading={isLoading}
         currentUserId={currentUser.id}
         page={page}
-        pageSize={PAGE_SIZE}
+        pageSize={pageSize}
         pagination={pagination}
         changingUserId={changingUserId}
         onEdit={openEditForm}

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useState } from 'react'
 import {
   BadgeInfo,
   RefreshCw,
@@ -9,60 +9,41 @@ import { Navigate } from 'react-router-dom'
 
 import { getStaffProfiles } from '../../api/staffProfiles'
 import { useAuth } from '../../auth/useAuth'
-import ProfessionalProfileModal from '../../components/users/ProfessionalProfileModal'
+import ProfessionalProfileModal from '../../components/admin/ProfessionalProfileModal'
 import { getRoleLabel, USER_ROLE_OPTIONS } from '../../config/userOptions'
-import { PaginationFooter } from '../../utils/PaginationFooter'
+import { PaginationFooter } from '../../components/common/PaginationFooter'
+import { usePaginatedResource } from '../../utils/usePaginatedResource'
 
-const SEARCH_DELAY = 350
 const PAGE_SIZE = 8
 
 export default function StaffProfileManagementPage() {
   const { user: currentUser } = useAuth()
-  const [staffProfiles, setStaffProfiles] = useState([])
-  const [isLoading, setIsLoading] = useState(true)
-  const [errorMessage, setErrorMessage] = useState('')
   const [search, setSearch] = useState('')
   const [roleFilter, setRoleFilter] = useState('all')
-  const [page, setPage] = useState(1)
-  const [pagination, setPagination] = useState({
-    count: 0,
-    next: null,
-    previous: null,
-  })
   const [selectedStaff, setSelectedStaff] = useState(null)
 
-  const loadStaffProfiles = useCallback(async () => {
-    setIsLoading(true)
-    setErrorMessage('')
+  const fetchStaffProfiles = useCallback(({ page, pageSize }) => getStaffProfiles({
+    search,
+    role: roleFilter,
+    page,
+    pageSize,
+  }), [roleFilter, search])
 
-    try {
-      const data = await getStaffProfiles({
-        search,
-        role: roleFilter,
-        page,
-        pageSize: PAGE_SIZE,
-      })
-      setStaffProfiles(data.results || [])
-      setPagination({
-        count: data.count || 0,
-        next: data.next,
-        previous: data.previous,
-      })
-    } catch (error) {
-      setErrorMessage(error.message || 'Không thể tải danh sách hồ sơ nhân viên.')
-    } finally {
-      setIsLoading(false)
-    }
-  }, [page, roleFilter, search])
-
-  useEffect(() => {
-    setPage(1)
-  }, [roleFilter, search])
-
-  useEffect(() => {
-    const timer = window.setTimeout(loadStaffProfiles, SEARCH_DELAY)
-    return () => window.clearTimeout(timer)
-  }, [loadStaffProfiles])
+  const {
+    items: staffProfiles,
+    page,
+    setPage,
+    pageSize,
+    pagination,
+    isLoading,
+    errorMessage,
+    loadItems: loadStaffProfiles,
+  } = usePaginatedResource({
+    fetchPage: fetchStaffProfiles,
+    resetKey: `${roleFilter}|${search}`,
+    pageSize: PAGE_SIZE,
+    errorFallback: 'Không thể tải danh sách hồ sơ nhân viên.',
+  })
 
   if (currentUser.role !== 'admin') {
     return <Navigate to="/app" replace />
@@ -159,7 +140,7 @@ export default function StaffProfileManagementPage() {
             count={pagination.count}
             entityLabel="hồ sơ nhân viên"
             page={page}
-            pageSize={PAGE_SIZE}
+            pageSize={pageSize}
             previous={pagination.previous}
             next={pagination.next}
             onPageChange={setPage}

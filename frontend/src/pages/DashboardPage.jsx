@@ -1,17 +1,11 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
 import {
   ArrowRight,
-  Building2,
   CalendarClock,
   CheckCircle2,
   Clock3,
-  FlaskConical,
-  Pill,
-  Users,
 } from 'lucide-react'
 import { Link } from 'react-router-dom'
 
-import { getUsers } from '../api/users'
 import { useAuth } from '../auth/useAuth'
 import { getRoleConfig } from '../config/roles'
 
@@ -19,9 +13,6 @@ export function DashboardPage() {
   const { user } = useAuth()
   const roleConfig = getRoleConfig(user.role)
   const firstName = user.full_name.trim().split(' ').at(-1)
-  const [users, setUsers] = useState([])
-
-
 
   return (
     <div className="dashboard">
@@ -106,42 +97,4 @@ export function DashboardPage() {
       </div>
     </div>
   )
-}
-
-function OverviewCard({ item }) {
-  const Icon = item.icon
-
-  return (
-    <Link className="overview-card" to={item.path}>
-      <span className={`users-stat__icon users-stat__icon--${item.tone}`}>
-        <Icon size={22} strokeWidth={1.8} aria-hidden="true" />
-      </span>
-      <span className="overview-card__content">
-        <small>{item.label}</small>
-        <strong>{item.value}</strong>
-        <span>
-          {item.active} hoạt động
-          <i aria-hidden="true" />
-          {item.inactive} ngưng
-        </span>
-      </span>
-      <ArrowRight className="overview-card__arrow" size={17} aria-hidden="true" />
-    </Link>
-  )
-}
-
-function createOverviewItem({ label, value, active, icon, tone, path }) {
-  return {
-    label,
-    value,
-    active,
-    icon,
-    tone,
-    path,
-    inactive: Math.max(value - active, 0),
-  }
-}
-
-function toList(data) {
-  return Array.isArray(data) ? data : data.results || []
 }
