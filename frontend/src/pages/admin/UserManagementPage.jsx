@@ -1,12 +1,6 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import {
-  ClipboardList,
-  FlaskConical,
-  HeartPulse,
-  ShieldCheck,
-  Stethoscope,
   UserPlus,
-  Users,
 } from 'lucide-react'
 import { Navigate } from 'react-router-dom'
 
@@ -20,8 +14,10 @@ import { useAuth } from '../../auth/useAuth'
 import UserFormModal from '../../components/users/UserFormModal'
 import UserTable from '../../components/users/UserTable'
 import UserToolbar from '../../components/users/UserToolbar'
+import { Snackbar } from '../../utils/Snackbar'
 
 const SEARCH_DELAY = 350
+const PAGE_SIZE = 8
 
 export default function UserManagementPage() {
   const { user: currentUser } = useAuth()
@@ -32,58 +28,64 @@ export default function UserManagementPage() {
   const [roleFilter, setRoleFilter] = useState('all')
   const [statusFilter, setStatusFilter] = useState('all')
   const [ordering, setOrdering] = useState('username')
+  const [page, setPage] = useState(1)
+  const [pagination, setPagination] = useState({
+    count: 0,
+    next: null,
+    previous: null,
+  })
   const [selectedUser, setSelectedUser] = useState(null)
   const [isFormOpen, setIsFormOpen] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
   const [formError, setFormError] = useState(null)
+  const [pendingStatusChange, setPendingStatusChange] = useState(null)
+  const [changingUserId, setChangingUserId] = useState(null)
+  const [snackbar, setSnackbar] = useState(null)
 
   const loadUsers = useCallback(async () => {
     setIsLoading(true)
     setErrorMessage('')
 
     try {
-      const data = await getUsers({ search, ordering })
-      setUsers(Array.isArray(data) ? data : data.results || [])
+      const data = await getUsers({
+        search,
+        ordering,
+        role: roleFilter,
+        status: statusFilter,
+        page,
+        pageSize: PAGE_SIZE,
+      })
+      setUsers(data.results || [])
+      setPagination({
+        count: data.count || 0,
+        next: data.next,
+        previous: data.previous,
+      })
     } catch (error) {
       setErrorMessage(error.message || 'Không thể tải danh sách tài khoản.')
     } finally {
       setIsLoading(false)
     }
-  }, [search, ordering])
+  }, [ordering, page, roleFilter, search, statusFilter])
+
+  useEffect(() => {
+    setPage(1)
+  }, [ordering, roleFilter, search, statusFilter])
 
   useEffect(() => {
     const timer = window.setTimeout(loadUsers, SEARCH_DELAY)
     return () => window.clearTimeout(timer)
   }, [loadUsers])
 
-  const filteredUsers = useMemo(() => users.filter((user) => {
-    const matchesRole = roleFilter === 'all'
-      || user.staff_profile?.role === roleFilter
-    const matchesStatus = statusFilter === 'all'
-      || (statusFilter === 'active' && user.is_active)
-      || (statusFilter === 'inactive' && !user.is_active)
+  useEffect(() => {
+    if (!snackbar || snackbar.type === 'confirm') return undefined
 
-    return matchesRole && matchesStatus
-  }), [users, roleFilter, statusFilter])
+    const timer = window.setTimeout(() => {
+      setSnackbar(null)
+    }, 3000)
 
-  const summary = useMemo(() => ({
-    total: users.length,
-    doctors: users.filter(
-      (user) => user.staff_profile?.role === 'doctor',
-    ).length,
-    nurses: users.filter(
-      (user) => user.staff_profile?.role === 'nurse',
-    ).length,
-    admins: users.filter(
-      (user) => user.staff_profile?.role === 'admin',
-    ).length,
-    receptionists: users.filter(
-      (user) => user.staff_profile?.role === 'receptionist',
-    ).length,
-    labTechnicians: users.filter(
-      (user) => user.staff_profile?.role === 'lab_technician',
-    ).length,
-  }), [users])
+    return () => window.clearTimeout(timer)
+  }, [snackbar])
 
   if (currentUser.role !== 'admin') {
     return <Navigate to="/app" replace />
@@ -128,14 +130,47 @@ export default function UserManagementPage() {
     }
   }
 
-  async function handleStatusChange(user) {
+  function requestStatusChange(user) {
+    const action = user.is_active ? 'khóa' : 'mở khóa'
+
+    setPendingStatusChange(user)
+    setSnackbar({
+      type: 'confirm',
+      message: `Bạn có chắc muốn ${action} tài khoản ${user.username}?`,
+    })
+  }
+
+  async function confirmStatusChange() {
+    if (!pendingStatusChange) return
+
+    const user = pendingStatusChange
+    const actionResult = user.is_active ? 'khóa' : 'mở khóa'
+
     setErrorMessage('')
+    setSnackbar(null)
+    setChangingUserId(user.id)
+
     try {
       await changeUserStatus(user.id, !user.is_active)
       await loadUsers()
+      setSnackbar({
+        type: 'success',
+        message: `Đã ${actionResult} tài khoản ${user.username}.`,
+      })
     } catch (error) {
-      setErrorMessage(error.message || 'Không thể cập nhật trạng thái tài khoản.')
+      setSnackbar({
+        type: 'error',
+        message: error.message || 'Không thể cập nhật trạng thái tài khoản.',
+      })
+    } finally {
+      setChangingUserId(null)
+      setPendingStatusChange(null)
     }
+  }
+
+  function cancelStatusChange() {
+    setPendingStatusChange(null)
+    setSnackbar(null)
   }
 
   return (
@@ -150,25 +185,6 @@ export default function UserManagementPage() {
           Thêm người dùng
         </button>
       </header>
-
-      <section className="users-stats" aria-label="Thống kê người dùng">
-        <StatItem icon={Users} label="Tổng người dùng" value={summary.total} tone="blue" />
-        <StatItem icon={Stethoscope} label="Bác sĩ" value={summary.doctors} tone="cyan" />
-        <StatItem icon={HeartPulse} label="Điều dưỡng" value={summary.nurses} tone="green" />
-        <StatItem
-          icon={ClipboardList}
-          label="Nhân viên tiếp nhận"
-          value={summary.receptionists}
-          tone="amber"
-        />
-        <StatItem
-          icon={FlaskConical}
-          label="Nhân viên xét nghiệm"
-          value={summary.labTechnicians}
-          tone="purple"
-        />
-        <StatItem icon={ShieldCheck} label="Quản trị viên" value={summary.admins} tone="red" />
-      </section>
 
       <UserToolbar
         search={search}
@@ -191,12 +207,16 @@ export default function UserManagementPage() {
       )}
 
       <UserTable
-        key={`${search}:${roleFilter}:${statusFilter}:${ordering}`}
-        users={filteredUsers}
+        users={users}
         isLoading={isLoading}
         currentUserId={currentUser.id}
+        page={page}
+        pageSize={PAGE_SIZE}
+        pagination={pagination}
+        changingUserId={changingUserId}
         onEdit={openEditForm}
-        onStatusChange={handleStatusChange}
+        onPageChange={setPage}
+        onStatusChange={requestStatusChange}
       />
 
       {isFormOpen && (
@@ -219,20 +239,12 @@ export default function UserManagementPage() {
       >
         <UserPlus size={24} aria-hidden="true" />
       </button>
-    </div>
-  )
-}
 
-function StatItem({ icon: Icon, label, value, tone }) {
-  return (
-    <article className="users-stat">
-      <span className={`users-stat__icon users-stat__icon--${tone}`}>
-        <Icon size={22} strokeWidth={1.8} aria-hidden="true" />
-      </span>
-      <span className="users-stat__content">
-        <small>{label}</small>
-        <strong>{value}</strong>
-      </span>
-    </article>
+      <Snackbar
+        snackbar={snackbar}
+        onCancel={cancelStatusChange}
+        onConfirm={confirmStatusChange}
+      />
+    </div>
   )
 }

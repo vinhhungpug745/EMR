@@ -14,14 +14,22 @@ import { Navigate } from 'react-router-dom'
 
 import { createDepartment, getDepartments, updateDepartment } from '../../api/departments'
 import { useAuth } from '../../auth/useAuth'
+import { PaginationFooter } from '../../utils/PaginationFooter'
 import { Snackbar } from '../../utils/Snackbar'
 
 const SEARCH_DELAY = 350
+const PAGE_SIZE = 8
 
 export default function DepartmentListPage() {
   const { user } = useAuth()
   const [departments, setDepartments] = useState([])
   const [search, setSearch] = useState('')
+  const [page, setPage] = useState(1)
+  const [pagination, setPagination] = useState({
+    count: 0,
+    next: null,
+    previous: null,
+  })
   const [isLoading, setIsLoading] = useState(true)
   const [errorMessage, setErrorMessage] = useState('')
   const [updatingDepartmentId, setUpdatingDepartmentId] = useState(null)
@@ -36,13 +44,27 @@ export default function DepartmentListPage() {
     setErrorMessage('')
 
     try {
-      const data = await getDepartments({ search, ordering: 'name' })
-      setDepartments(Array.isArray(data) ? data : data.results || [])
+      const data = await getDepartments({
+        search,
+        ordering: 'name',
+        page,
+        pageSize: PAGE_SIZE,
+      })
+      setDepartments(data.results || [])
+      setPagination({
+        count: data.count || 0,
+        next: data.next,
+        previous: data.previous,
+      })
     } catch (error) {
       setErrorMessage(error.message || 'Không thể tải danh sách khoa.')
     } finally {
       setIsLoading(false)
     }
+  }, [page, search])
+
+  useEffect(() => {
+    setPage(1)
   }, [search])
 
   useEffect(() => {
@@ -130,12 +152,8 @@ export default function DepartmentListPage() {
 
     try {
       const createdDepartment = await createDepartment(formData)
-      setDepartments((currentDepartments) => (
-        [...currentDepartments, createdDepartment].sort((first, second) => (
-          first.name.localeCompare(second.name, 'vi')
-        ))
-      ))
       setIsCreateOpen(false)
+      await loadDepartments()
       setSnackbar({
         type: 'success',
         message: `Đã thêm ${createdDepartment.name}.`,
@@ -262,11 +280,23 @@ export default function DepartmentListPage() {
           </table>
         </div>
 
-        {!isLoading && departments.length === 0 && (
+        {!isLoading && pagination.count === 0 && (
           <div className="users-table__empty">
             <strong>Không có dữ liệu</strong>
             <span>Chưa tìm thấy khoa nào trong database.</span>
           </div>
+        )}
+
+        {!isLoading && (
+          <PaginationFooter
+            count={pagination.count}
+            entityLabel="khoa"
+            page={page}
+            pageSize={PAGE_SIZE}
+            previous={pagination.previous}
+            next={pagination.next}
+            onPageChange={setPage}
+          />
         )}
       </section>
 

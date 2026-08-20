@@ -1,14 +1,9 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import {
   BadgeInfo,
-  ClipboardList,
-  FlaskConical,
-  HeartPulse,
   RefreshCw,
   Search,
-  Stethoscope,
   UserRound,
-  Users,
 } from 'lucide-react'
 import { Navigate } from 'react-router-dom'
 
@@ -16,8 +11,10 @@ import { getStaffProfiles } from '../../api/staffProfiles'
 import { useAuth } from '../../auth/useAuth'
 import ProfessionalProfileModal from '../../components/users/ProfessionalProfileModal'
 import { getRoleLabel, USER_ROLE_OPTIONS } from '../../config/userOptions'
+import { PaginationFooter } from '../../utils/PaginationFooter'
 
 const SEARCH_DELAY = 350
+const PAGE_SIZE = 8
 
 export default function StaffProfileManagementPage() {
   const { user: currentUser } = useAuth()
@@ -26,6 +23,12 @@ export default function StaffProfileManagementPage() {
   const [errorMessage, setErrorMessage] = useState('')
   const [search, setSearch] = useState('')
   const [roleFilter, setRoleFilter] = useState('all')
+  const [page, setPage] = useState(1)
+  const [pagination, setPagination] = useState({
+    count: 0,
+    next: null,
+    previous: null,
+  })
   const [selectedStaff, setSelectedStaff] = useState(null)
 
   const loadStaffProfiles = useCallback(async () => {
@@ -33,31 +36,33 @@ export default function StaffProfileManagementPage() {
     setErrorMessage('')
 
     try {
-      const data = await getStaffProfiles({ search })
-      setStaffProfiles(Array.isArray(data) ? data : data.results || [])
+      const data = await getStaffProfiles({
+        search,
+        role: roleFilter,
+        page,
+        pageSize: PAGE_SIZE,
+      })
+      setStaffProfiles(data.results || [])
+      setPagination({
+        count: data.count || 0,
+        next: data.next,
+        previous: data.previous,
+      })
     } catch (error) {
       setErrorMessage(error.message || 'Không thể tải danh sách hồ sơ nhân viên.')
     } finally {
       setIsLoading(false)
     }
-  }, [search])
+  }, [page, roleFilter, search])
+
+  useEffect(() => {
+    setPage(1)
+  }, [roleFilter, search])
 
   useEffect(() => {
     const timer = window.setTimeout(loadStaffProfiles, SEARCH_DELAY)
     return () => window.clearTimeout(timer)
   }, [loadStaffProfiles])
-
-  const filteredProfiles = useMemo(() => staffProfiles.filter((staff) => (
-    roleFilter === 'all' || staff.role === roleFilter
-  )), [roleFilter, staffProfiles])
-
-  const summary = useMemo(() => ({
-    total: staffProfiles.length,
-    doctors: staffProfiles.filter((staff) => staff.role === 'doctor').length,
-    nurses: staffProfiles.filter((staff) => staff.role === 'nurse').length,
-    receptionists: staffProfiles.filter((staff) => staff.role === 'receptionist').length,
-    labTechnicians: staffProfiles.filter((staff) => staff.role === 'lab_technician').length,
-  }), [staffProfiles])
 
   if (currentUser.role !== 'admin') {
     return <Navigate to="/app" replace />
@@ -79,24 +84,6 @@ export default function StaffProfileManagementPage() {
           <p>Quản lý hồ sơ nhân viên và thông tin chuyên môn theo từng vai trò.</p>
         </div>
       </header>
-
-      {/* <section className="users-stats" aria-label="Thống kê hồ sơ nhân viên">
-        <StatItem icon={Users} label="Tổng nhân viên" value={summary.total} tone="blue" />
-        <StatItem icon={Stethoscope} label="Bác sĩ" value={summary.doctors} tone="cyan" />
-        <StatItem icon={HeartPulse} label="Điều dưỡng" value={summary.nurses} tone="green" />
-        <StatItem
-          icon={ClipboardList}
-          label="Nhân viên tiếp nhận"
-          value={summary.receptionists}
-          tone="amber"
-        />
-        <StatItem
-          icon={FlaskConical}
-          label="Nhân viên xét nghiệm"
-          value={summary.labTechnicians}
-          tone="purple"
-        />
-      </section> */}
 
       <section className="users-toolbar" aria-label="Bộ lọc hồ sơ nhân viên">
         <label className="users-toolbar__search">
@@ -148,7 +135,7 @@ export default function StaffProfileManagementPage() {
             <tbody>
               {isLoading && <LoadingRows />}
 
-              {!isLoading && filteredProfiles.map((staff) => (
+              {!isLoading && staffProfiles.map((staff) => (
                 <StaffProfileRow
                   key={staff.id}
                   staff={staff}
@@ -159,12 +146,24 @@ export default function StaffProfileManagementPage() {
           </table>
         </div>
 
-        {!isLoading && filteredProfiles.length === 0 && (
+        {!isLoading && pagination.count === 0 && (
           <div className="users-table__empty">
             <UserRound size={28} aria-hidden="true" />
             <strong>Không tìm thấy hồ sơ nhân viên</strong>
             <span>Thử thay đổi từ khóa hoặc bộ lọc hiện tại.</span>
           </div>
+        )}
+
+        {!isLoading && (
+          <PaginationFooter
+            count={pagination.count}
+            entityLabel="hồ sơ nhân viên"
+            page={page}
+            pageSize={PAGE_SIZE}
+            previous={pagination.previous}
+            next={pagination.next}
+            onPageChange={setPage}
+          />
         )}
       </section>
 
@@ -217,20 +216,6 @@ function StaffProfileRow({ staff, onEditProfessionalProfile }) {
         </div>
       </td>
     </tr>
-  )
-}
-
-function StatItem({ icon: Icon, label, value, tone }) {
-  return (
-    <article className="users-stat">
-      <span className={`users-stat__icon users-stat__icon--${tone}`}>
-        <Icon size={22} strokeWidth={1.8} aria-hidden="true" />
-      </span>
-      <span className="users-stat__content">
-        <small>{label}</small>
-        <strong>{value}</strong>
-      </span>
-    </article>
   )
 }
 

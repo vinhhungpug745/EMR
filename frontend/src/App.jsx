@@ -5,9 +5,11 @@ import { AppShell } from './components/layout/AppShell'
 import { DashboardPage } from './pages/DashboardPage'
 import { LoginPage } from './pages/LoginPage'
 import { ModulePage } from './pages/ModulePage'
-import StaffProfileManagementPage from './pages/staff/StaffProfileManagementPage'
-import UserManagementPage from './pages/users/UserManagementPage'
-import DepartmentPage from './pages/departments/DepartmentPage'
+import DepartmentPage from './pages/admin/DepartmentPage'
+import LabTestCatalogPage from './pages/admin/LabTestCatalogPage'
+import MedicationPage from './pages/admin/MedicationPage'
+import StaffProfileManagementPage from './pages/admin/StaffProfileManagementPage'
+import UserManagementPage from './pages/admin/UserManagementPage'
 
 function App() {
   return (
@@ -19,6 +21,8 @@ function App() {
           <Route path="users" element={<UserManagementPage />} />
           <Route path="staff" element={<StaffProfileManagementPage />} />
           <Route path="departments" element={<DepartmentPage />} />
+          <Route path="medications" element={<MedicationPage />} />
+          <Route path="lab-test-catalogs" element={<LabTestCatalogPage />} />
           <Route path=":moduleId" element={<ModulePage />} />
         </Route>
       </Route>

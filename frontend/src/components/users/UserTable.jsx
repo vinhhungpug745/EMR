@@ -1,4 +1,3 @@
-import { useMemo, useState } from 'react'
 import {
   ChevronLeft,
   ChevronRight,
@@ -10,44 +9,27 @@ import {
 
 import { getRoleLabel } from '../../config/userOptions'
 
-const PAGE_SIZE = 8
-
 export default function UserTable({
   users,
   isLoading,
   currentUserId,
+  page,
+  pageSize,
+  pagination,
+  changingUserId,
   onEdit,
+  onPageChange,
   onStatusChange,
 }) {
-  const [page, setPage] = useState(1)
-  const [changingUserId, setChangingUserId] = useState(null)
-  const pageCount = Math.max(1, Math.ceil(users.length / PAGE_SIZE))
-  const safePage = Math.min(page, pageCount)
-
-  const visibleUsers = useMemo(() => {
-    const start = (safePage - 1) * PAGE_SIZE
-    return users.slice(start, start + PAGE_SIZE)
-  }, [safePage, users])
-
-  async function handleStatusClick(user) {
-    const action = user.is_active ? 'khóa' : 'mở khóa'
-    const confirmed = window.confirm(
-      `Bạn có chắc muốn ${action} tài khoản ${user.username}?`,
-    )
-    if (!confirmed) return
-
-    setChangingUserId(user.id)
-    try {
-      await onStatusChange(user)
-    } finally {
-      setChangingUserId(null)
-    }
-  }
+  const totalCount = pagination?.count || 0
+  const pageCount = Math.max(1, Math.ceil(totalCount / pageSize))
+  const startRow = totalCount === 0 ? 0 : (page - 1) * pageSize + 1
+  const endRow = Math.min(page * pageSize, totalCount)
 
   return (
     <section className="users-table-panel" aria-label="Danh sách người dùng">
       <div className="users-table-scroll">
-        <table className="users-table">
+        <table className="users-table user-management-table">
           <thead>
             <tr>
               <th>Người dùng</th>
@@ -61,21 +43,21 @@ export default function UserTable({
           <tbody>
             {isLoading && <LoadingRows />}
 
-            {!isLoading && visibleUsers.map((user) => (
+            {!isLoading && users.map((user) => (
               <UserRow
                 key={user.id}
                 user={user}
                 isCurrentUser={user.id === currentUserId}
                 isChanging={changingUserId === user.id}
                 onEdit={onEdit}
-                onStatusClick={handleStatusClick}
+                onStatusClick={onStatusChange}
               />
             ))}
           </tbody>
         </table>
       </div>
 
-      {!isLoading && users.length === 0 && (
+      {!isLoading && totalCount === 0 && (
         <div className="users-table__empty">
           <Users size={28} aria-hidden="true" />
           <strong>Không tìm thấy người dùng</strong>
@@ -83,29 +65,29 @@ export default function UserTable({
         </div>
       )}
 
-      {!isLoading && users.length > 0 && (
+      {!isLoading && totalCount > 0 && (
         <footer className="users-pagination">
           <span>
-            Hiển thị {(safePage - 1) * PAGE_SIZE + 1}–{Math.min(safePage * PAGE_SIZE, users.length)}
-            {' '}trong {users.length} người dùng
+            Hiển thị {startRow}–{endRow}
+            {' '}trong {totalCount} người dùng
           </span>
           <div>
             <button
               className="icon-button"
               type="button"
               aria-label="Trang trước"
-              disabled={safePage === 1}
-              onClick={() => setPage((current) => current - 1)}
+              disabled={!pagination?.previous}
+              onClick={() => onPageChange(page - 1)}
             >
               <ChevronLeft size={18} />
             </button>
-            <strong>{safePage} / {pageCount}</strong>
+            <strong>{page} / {pageCount}</strong>
             <button
               className="icon-button"
               type="button"
               aria-label="Trang sau"
-              disabled={safePage === pageCount}
-              onClick={() => setPage((current) => current + 1)}
+              disabled={!pagination?.next}
+              onClick={() => onPageChange(page + 1)}
             >
               <ChevronRight size={18} />
             </button>

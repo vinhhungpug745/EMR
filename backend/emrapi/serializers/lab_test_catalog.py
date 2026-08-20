@@ -6,7 +6,15 @@ from .base import ModelCleanSerializer
 class LabTestCatalogSummarySerializer(ModelCleanSerializer):
     class Meta:
         model = LabTestCatalog
-        fields = ['id', 'code', 'name', 'category', 'specimen_type']
+        fields = [
+            'id',
+            'code',
+            'name',
+            'category',
+            'specimen_type',
+            'description',
+            'active',
+        ]
         read_only_fields = fields
 
 

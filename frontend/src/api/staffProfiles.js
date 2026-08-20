@@ -1,7 +1,13 @@
 import { apiRequest } from './http'
 import { endpoints } from './endpoints'
 
-export function getStaffProfiles({ search = '', ordering = 'role' } = {}) {
+export function getStaffProfiles({
+  search = '',
+  ordering = 'role',
+  role = 'all',
+  page = 1,
+  pageSize = 8,
+} = {}) {
   const params = new URLSearchParams()
 
   if (search.trim()) {
@@ -12,8 +18,14 @@ export function getStaffProfiles({ search = '', ordering = 'role' } = {}) {
     params.set('ordering', ordering)
   }
 
-  const query = params.toString()
-  return apiRequest(`${endpoints.staffProfiles}${query ? `?${query}` : ''}`)
+  if (role && role !== 'all') {
+    params.set('role', role)
+  }
+
+  params.set('page', page)
+  params.set('page_size', pageSize)
+
+  return apiRequest(`${endpoints.staffProfiles}?${params.toString()}`)
 }
 
 export function getStaffProfileById(staffId) {

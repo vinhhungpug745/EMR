@@ -1,14 +1,20 @@
 import { apiRequest } from './http'
 import { endpoints } from './endpoints'
 
-export function getMedications({ search = '', ordering = 'name' } = {}) {
+export function getMedications({
+  search = '',
+  ordering = 'name',
+  page = 1,
+  pageSize = 8,
+} = {}) {
   const params = new URLSearchParams()
 
   if (search.trim()) params.set('search', search.trim())
   if (ordering) params.set('ordering', ordering)
+  params.set('page', page)
+  params.set('page_size', pageSize)
 
-  const query = params.toString()
-  return apiRequest(`${endpoints.medications}${query ? `?${query}` : ''}`)
+  return apiRequest(`${endpoints.medications}?${params.toString()}`)
 }
 
 export function createMedication(data) {

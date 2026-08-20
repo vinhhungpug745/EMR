@@ -55,6 +55,8 @@ REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": (
         "rest_framework_simplejwt.authentication.JWTAuthentication",
     ),
+    "DEFAULT_PAGINATION_CLASS": "emrapi.pagination.StandardResultsSetPagination",
+    "PAGE_SIZE": 8,
 }
 
 SIMPLE_JWT = {

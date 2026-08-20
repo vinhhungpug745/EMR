@@ -1,19 +1,26 @@
-import {apiRequest} from './http';
-import {endpoints} from './endpoints';
+import { apiRequest } from './http'
+import { endpoints } from './endpoints'
 
-export function getDepartments({search = '', ordering = 'name'} = {}) {
+export function getDepartments({
+  search = '',
+  ordering = 'name',
+  page = 1,
+  pageSize = 8,
+} = {}) {
   const params = new URLSearchParams()
 
-    if (search.trim()) {
-        params.set('search', search.trim())
-    }
+  if (search.trim()) {
+    params.set('search', search.trim())
+  }
 
-    if (ordering) {
-        params.set('ordering', ordering)
-    }
+  if (ordering) {
+    params.set('ordering', ordering)
+  }
 
-    const query = params.toString()
-    return apiRequest(`${endpoints.departments}${query ? `?${query}` : ''}`)
+  params.set('page', page)
+  params.set('page_size', pageSize)
+
+  return apiRequest(`${endpoints.departments}?${params.toString()}`)
 }
 
 export function getDepartmentById(id) {

@@ -39,6 +39,8 @@ export const ROLE_CONFIG = {
     ],
     focus: [
       { label: 'Tài khoản người dùng', value: 'Quản lý', icon: Users },
+      { label: 'Hồ sơ nhân viên', value: 'Quản lý', icon: UserRound },
+      { label: 'Khoa', value: 'Cập nhật', icon: Building2 },
       { label: 'Danh mục thuốc', value: 'Theo dõi', icon: Pill },
       { label: 'Danh mục xét nghiệm', value: 'Cập nhật', icon: FlaskConical },
       { label: 'Nhật ký truy cập', value: 'Kiểm tra', icon: FileClock },

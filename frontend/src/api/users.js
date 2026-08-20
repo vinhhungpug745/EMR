@@ -1,7 +1,14 @@
 import { apiRequest } from './http'
 import { endpoints } from './endpoints'
 
-export function getUsers({ search = '', ordering = 'username' } = {}) {
+export function getUsers({
+  search = '',
+  ordering = 'username',
+  role = 'all',
+  status = 'all',
+  page = 1,
+  pageSize = 8,
+} = {}) {
   const params = new URLSearchParams()
 
   if (search.trim()) {
@@ -12,13 +19,26 @@ export function getUsers({ search = '', ordering = 'username' } = {}) {
     params.set('ordering', ordering)
   }
 
-  const query = params.toString()
+  if (role && role !== 'all') {
+    params.set('role', role)
+  }
 
-  return apiRequest(`${endpoints.users}${query ? `?${query}` : ''}`)
+  if (status && status !== 'all') {
+    params.set('status', status)
+  }
+
+  params.set('page', page)
+  params.set('page_size', pageSize)
+
+  return apiRequest(`${endpoints.users}?${params.toString()}`)
 }
 
 export function getUserById(userId) {
   return apiRequest(endpoints.userDetail(userId))
+}
+
+export function getUserSummary() {
+  return apiRequest(`${endpoints.users}summary/`)
 }
 
 export function createUser(userData) {

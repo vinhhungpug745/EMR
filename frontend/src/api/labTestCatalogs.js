@@ -1,14 +1,20 @@
 import { apiRequest } from './http'
 import { endpoints } from './endpoints'
 
-export function getLabTestCatalogs({ search = '', ordering = 'name' } = {}) {
+export function getLabTestCatalogs({
+  search = '',
+  ordering = 'name',
+  page = 1,
+  pageSize = 8,
+} = {}) {
   const params = new URLSearchParams()
 
   if (search.trim()) params.set('search', search.trim())
   if (ordering) params.set('ordering', ordering)
+  params.set('page', page)
+  params.set('page_size', pageSize)
 
-  const query = params.toString()
-  return apiRequest(`${endpoints.labTestCatalogs}${query ? `?${query}` : ''}`)
+  return apiRequest(`${endpoints.labTestCatalogs}?${params.toString()}`)
 }
 
 export function createLabTestCatalog(data) {

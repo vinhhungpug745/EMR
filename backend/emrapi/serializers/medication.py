@@ -6,7 +6,17 @@ from .base import ModelCleanSerializer
 class MedicationSummarySerializer(ModelCleanSerializer):
     class Meta:
         model = Medication
-        fields = ['id', 'code', 'name', 'strength', 'unit', 'route']
+        fields = [
+            'id',
+            'code',
+            'name',
+            'active_ingredient',
+            'strength',
+            'dosage_form',
+            'unit',
+            'route',
+            'active',
+        ]
         read_only_fields = fields
 
 

@@ -59,6 +59,15 @@ class StaffProfileViewSet(viewsets.ModelViewSet):
 
     http_method_names = ['get', 'post', 'patch', 'head', 'options']
 
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        role = self.request.query_params.get('role')
+
+        if role and role != 'all':
+            queryset = queryset.filter(role=role)
+
+        return queryset
+
     def get_serializer_class(self):
         if self.action == 'list':
             return StaffProfileSummarySerializer
