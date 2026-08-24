@@ -1,0 +1,203 @@
+.user-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: rgba(13, 38, 61, 0.48);
+}
+
+.user-modal {
+  width: min(720px, 100%);
+  max-height: min(820px, calc(100dvh - 48px));
+  overflow-y: auto;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: 0 24px 64px rgba(19, 38, 58, 0.24);
+}
+
+.user-modal__header {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 20px 22px;
+  background: rgba(255, 255, 255, 0.98);
+  border-bottom: 1px solid var(--border);
+}
+
+.user-modal__header h2 {
+  margin-bottom: 4px;
+  font-size: 20px;
+}
+
+.user-modal__header p {
+  margin: 0;
+  color: var(--ink-500);
+  font-size: 13px;
+}
+
+.user-form {
+  padding: 22px;
+}
+
+.user-form__error {
+  margin-bottom: 18px;
+}
+
+.user-form__grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 17px;
+}
+
+.user-form__field {
+  min-width: 0;
+  display: grid;
+  align-content: start;
+  gap: 7px;
+  color: var(--ink-700);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.user-form__field > input,
+.user-form__field > select,
+.user-form__field > textarea,
+.user-form__field > .password-input {
+  align-self: start;
+}
+
+.user-form__field > textarea {
+  min-height: 96px;
+  padding-top: 10px;
+  resize: vertical;
+}
+
+.user-form__field--wide {
+  grid-column: 1 / -1;
+}
+
+.professional-modal {
+  width: min(760px, 100%);
+}
+
+.professional-modal__loading {
+  min-height: 180px;
+  display: grid;
+  place-items: center;
+  color: var(--ink-500);
+  background: var(--surface-subtle);
+  border: 1px dashed var(--border);
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+}
+
+.professional-modal__status {
+  align-self: start;
+}
+
+.user-form__field > small {
+  color: var(--ink-500);
+  font-weight: 400;
+}
+
+.user-form__field .user-form__field-error {
+  color: var(--danger);
+}
+
+.password-input {
+  position: relative;
+  display: block;
+}
+
+.password-input input {
+  padding-right: 42px !important;
+}
+
+.password-input button {
+  width: 36px;
+  height: 36px;
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  display: grid;
+  place-items: center;
+  color: var(--ink-500);
+  background: transparent;
+  border: 0;
+}
+
+.user-form__status {
+  min-height: 58px;
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  align-self: end;
+  padding: 10px 12px;
+  background: var(--surface-subtle);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+}
+
+.user-form__status input {
+  width: 17px;
+  height: 17px;
+  accent-color: var(--blue-700);
+}
+
+.user-form__status span {
+  display: grid;
+  gap: 3px;
+}
+
+.user-form__status strong {
+  color: var(--ink-900);
+  font-size: 12px;
+}
+
+.user-form__status small {
+  color: var(--ink-500);
+  font-size: 11px;
+}
+
+.user-modal__footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin: 22px -22px -22px;
+  padding: 16px 22px;
+  background: #f7fafc;
+  border-top: 1px solid var(--border);
+}
+
+.sr-only {
+  width: 1px;
+  height: 1px;
+  position: absolute;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+}
+
+@media (max-width: 760px) {
+  .user-modal-backdrop {
+    align-items: end;
+    padding: 0;
+  }
+
+  .user-modal {
+    width: 100%;
+    max-height: 92dvh;
+    border-radius: var(--radius-md) var(--radius-md) 0 0;
+  }
+
+  .user-form__grid {
+    grid-template-columns: 1fr;
+  }
+}

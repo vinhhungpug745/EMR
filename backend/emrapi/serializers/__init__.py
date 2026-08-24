@@ -21,7 +21,7 @@ from .prescription import PrescriptionItemSerializer, PrescriptionSerializer
 from .receptionist_profile import ReceptionistProfileSerializer
 from .staff_profile import StaffProfileSerializer, StaffProfileSummarySerializer,MyProfileSerializer
 from .user import UserSerializer, UserSummarySerializer
-from .vital_sign import VitalSignSerializer
+from .vital_sign import VitalSignSerializer,NurseQueueSerializer
 from .visit import VisitSerializer, VisitSummarySerializer
 
 __all__ = [
@@ -59,4 +59,6 @@ __all__ = [
     'VitalSignSerializer',
     'VisitSerializer',
     'VisitSummarySerializer',
+    'VitalSignSerializer',
+    'NurseQueueSerializer',
 ]

@@ -18,4 +18,17 @@ export const endpoints = {
 
   labTestCatalogs: '/lab-test-catalogs/',
   labTestCatalogDetail: (id) => `/lab-test-catalogs/${id}/`,
+
+  patients: '/patients/',
+  patientDetail: (id) => `/patients/${id}/`,
+
+  visits: '/visits/',
+  visitDetail: (id) => `/visits/${id}/`,
+
+  encounters: '/encounters/',
+  encounterDetail: (id) => `/encounters/${id}/`,
+
+  vitalSigns: '/vital-signs/',
+  vitalSignDetail: (id) => `/vital-signs/${id}/`,
+  nurseQueue: '/nurse-queue/',
 }

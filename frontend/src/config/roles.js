@@ -69,7 +69,7 @@ export const ROLE_CONFIG = {
     description: 'Tiếp nhận hàng đợi điều dưỡng và cập nhật chỉ số lâm sàng.',
     nav: [
       sharedDashboard,
-      { id: 'nursing-queue', label: 'Chờ đo sinh hiệu', path: '/app/nursing-queue', icon: ListChecks },
+      { id: 'nurse-queue', label: 'Chờ đo sinh hiệu', path: '/app/nurse-queue', icon: ListChecks },
       { id: 'vital-signs', label: 'Sinh hiệu', path: '/app/vital-signs', icon: Activity },
       { id: 'care-history', label: 'Lịch sử chăm sóc', path: '/app/care-history', icon: FileText },
     ],

@@ -278,10 +278,11 @@ class MedicalRecord(BaseModel):
 
 class Encounter(BaseModel):
     class Status(models.TextChoices):
-        CHECKED_IN = 'checked_in', 'Da tiep nhan'
-        IN_PROGRESS = 'in_progress', 'Dang kham'
-        COMPLETED = 'completed', 'Hoan thanh'
-        CANCELLED = 'cancelled', 'Da huy'
+        CHECKED_IN = 'checked_in', 'Chờ đo sinh hiệu'
+        VITALS_DONE = 'vitals_done', 'Đã đo sinh hiệu'
+        IN_PROGRESS = 'in_progress', 'Đang khám'
+        COMPLETED = 'completed', 'Hoàn thành'
+        CANCELLED = 'cancelled', 'Đã hủy'
 
     visit = models.ForeignKey(
         Visit,
@@ -310,7 +311,7 @@ class Encounter(BaseModel):
         null=True,
     )
     status = models.CharField(max_length=20, choices=Status.choices, default=Status.CHECKED_IN)
-    started_at = models.DateTimeField()
+    started_at = models.DateTimeField(blank=True,null=True)
     completed_at = models.DateTimeField(blank=True, null=True)
     chief_complaint = models.CharField(max_length=255)
     diagnosis = models.TextField(blank=True, null=True)
@@ -340,7 +341,12 @@ class Encounter(BaseModel):
         ]
 
     def __str__(self):
-        return f'{self.visit.medical_record.patient.full_name} - {self.started_at:%Y-%m-%d %H:%M}'
+        patient_name = self.visit.medical_record.patient.full_name
+
+        if self.started_at:
+            return f'{patient_name} - {self.started_at:%Y-%m-%d %H:%M}'
+
+        return f'{patient_name} - Chờ khám'
 
     def clean(self):
         if self.parent_encounter_id:
@@ -353,8 +359,15 @@ class Encounter(BaseModel):
                 raise ValidationError({'diagnosis': 'Luot kham hoan thanh phai co chan doan.'})
             if not self.completed_at:
                 raise ValidationError({'completed_at': 'Luot kham hoan thanh phai co thoi gian ket thuc.'})
-        if self.completed_at and self.completed_at < self.started_at:
-            raise ValidationError({'completed_at': 'Thoi gian ket thuc khong duoc truoc thoi gian bat dau.'})
+        if (
+                self.completed_at
+                and self.started_at
+                and self.completed_at < self.started_at
+        ):
+            raise ValidationError({
+                'completed_at':
+                    'Thoi gian ket thuc khong duoc truoc thoi gian bat dau.'
+            })
 
 
 class VitalSign(BaseModel):

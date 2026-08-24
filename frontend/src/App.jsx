@@ -10,6 +10,10 @@ import LabTestCatalogPage from './pages/admin/LabTestCatalogPage'
 import MedicationPage from './pages/admin/MedicationPage'
 import StaffProfileManagementPage from './pages/admin/StaffProfileManagementPage'
 import UserManagementPage from './pages/admin/UserManagementPage'
+import PatientPage from './pages/receptionist/PatientPage'
+import ReceptionPage from './pages/receptionist/ReceptionPage'
+import NursePage from './pages/nurse/NursePage'
+import VitalSignsPage from './pages/nurse/VItalSignPage'
 
 function App() {
   return (
@@ -23,6 +27,10 @@ function App() {
           <Route path="departments" element={<DepartmentPage />} />
           <Route path="medications" element={<MedicationPage />} />
           <Route path="lab-test-catalogs" element={<LabTestCatalogPage />} />
+          <Route path="patients" element={<PatientPage />} />
+          <Route path="reception" element={<ReceptionPage />} />
+          <Route path="nurse-queue" element={<NursePage />} />
+          <Route path="vital-signs" element={<VitalSignsPage />} />
           <Route path=":moduleId" element={<ModulePage />} />
         </Route>
       </Route>
