@@ -9,16 +9,11 @@ import { useAuth } from '../../auth/useAuth'
 import { Snackbar } from '../../components/common/Snackbar'
 import { ReceptionCheckInForm } from '../../components/receptionist/ReceptionCheckInForm'
 import { ReceptionPatientSearch } from '../../components/receptionist/ReceptionPatientSearch'
+import { getNowLocalInputValue } from '../../utils/dateTime'
 import { usePaginatedResource } from '../../utils/usePaginatedResource'
 import { useSnackbar } from '../../utils/useSnackbar'
 
 const PAGE_SIZE = 6
-
-function getNowLocalInputValue() {
-  const now = new Date()
-  now.setMinutes(now.getMinutes() - now.getTimezoneOffset())
-  return now.toISOString().slice(0, 16)
-}
 
 export default function ReceptionPage() {
   const { user } = useAuth()

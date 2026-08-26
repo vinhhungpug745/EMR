@@ -8,6 +8,7 @@ import {
 } from 'lucide-react'
 
 import { getRoleLabel } from '../../config/userOptions'
+import { formatVietnamDate } from '../../utils/dateTime'
 
 export default function UserTable({
   users,
@@ -141,7 +142,7 @@ function UserRow({
           {user.is_active ? 'Đang hoạt động' : 'Đã khóa'}
         </span>
       </td>
-      <td>{formatDate(user.date_joined)}</td>
+      <td>{formatVietnamDate(user.date_joined)}</td>
       <td>
         <div className="users-table__actions">
           <button
@@ -189,9 +190,4 @@ function getInitials(name) {
     .map((part) => part[0])
     .join('')
     .toUpperCase()
-}
-
-function formatDate(value) {
-  if (!value) return 'Chưa cập nhật'
-  return new Intl.DateTimeFormat('vi-VN').format(new Date(value))
 }

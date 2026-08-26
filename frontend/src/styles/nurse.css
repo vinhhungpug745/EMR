@@ -58,6 +58,35 @@
   font-size: 11px;
 }
 
+.nurse-scope {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+
+  width: fit-content;
+  max-width: 100%;
+  padding: 9px 11px;
+
+  color: var(--ink-600);
+  background: #f8fafc;
+
+  border: 1px solid var(--border);
+  border-radius: 10px;
+
+  font-size: 12px;
+}
+
+.nurse-scope strong {
+  min-width: 0;
+
+  overflow: hidden;
+
+  color: var(--ink-900);
+
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .nurse-panel {
   display: grid;
   gap: 14px;
@@ -140,12 +169,12 @@
   border-radius: 12px;
 }
 
-.nurse-queue {
+.vital-sign-queue {
   display: grid;
   gap: 10px;
 }
 
-.nurse-queue-card {
+.vital-sign-queue-card {
   position: relative;
   display: grid;
 
@@ -170,7 +199,7 @@
     transform 160ms ease;
 }
 
-.nurse-queue-card:hover {
+.vital-sign-queue-card:hover {
   border-color: #bdd3e4;
 
   box-shadow:
@@ -179,7 +208,7 @@
   transform: translateY(-1px);
 }
 
-.nurse-queue-card__number {
+.vital-sign-queue-card__number {
   width: 38px;
   height: 38px;
 
@@ -194,26 +223,26 @@
   font-weight: 800;
 }
 
-.nurse-queue-card__content {
+.vital-sign-queue-card__content {
   min-width: 0;
 
   display: grid;
   gap: 9px;
 }
 
-.nurse-queue-card__header {
+.vital-sign-queue-card__header {
   display: flex;
   gap: 12px;
   padding-right: 130px;
 }
 
-.nurse-queue-card__header > div {
+.vital-sign-queue-card__header > div {
   min-width: 0;
   display: grid;
   gap: 3px;
 }
 
-.nurse-queue-card__header strong {
+.vital-sign-queue-card__header strong {
   display: block;
 
   overflow: hidden;
@@ -224,7 +253,7 @@
   white-space: nowrap;
 }
 
-.nurse-queue-card__header small {
+.vital-sign-queue-card__header small {
   color: var(--ink-500);
 }
 
@@ -252,13 +281,13 @@
   white-space: nowrap;
 }
 
-.nurse-queue-card__meta {
+.vital-sign-queue-card__meta {
   display: flex;
   flex-wrap: wrap;
   gap: 8px 15px;
 }
 
-.nurse-queue-card__meta span {
+.vital-sign-queue-card__meta span {
   display: inline-flex;
   align-items: center;
   gap: 5px;
@@ -267,14 +296,14 @@
   font-size: 12px;
 }
 
-.nurse-queue-card__reason span {
+.vital-sign-queue-card__reason span {
   color: var(--ink-500);
   font-size: 10px;
   font-weight: 800;
   text-transform: uppercase;
 }
 
-.nurse-queue-card__reason p {
+.vital-sign-queue-card__reason p {
   margin: 2px 0 0;
   color: var(--ink-700);
   font-size: 12px;
@@ -315,7 +344,9 @@
 }
 
 .nurse-modal {
-  width: min(680px, 100%);
+  width: min(760px, 100%);
+  max-height: calc(100vh - 40px);
+  overflow: hidden;
 
   background: white;
 
@@ -380,14 +411,23 @@
   cursor: pointer;
 }
 
-.nurse-vital-grid {
+.nurse-vital-form {
   display: grid;
-  grid-template-columns:
-    repeat(2, minmax(0, 1fr));
-
   gap: 12px;
 
   padding: 18px;
+}
+
+.nurse-vital-section {
+  display: grid;
+}
+
+.nurse-vital-grid {
+  display: grid;
+  grid-template-columns:
+    repeat(3, minmax(0, 1fr));
+
+  gap: 12px;
 }
 
 .nurse-vital-field {
@@ -412,6 +452,14 @@
 
 .nurse-vital-field--wide {
   grid-column: 1 / -1;
+}
+
+.nurse-vital-field--department {
+  padding: 14px;
+}
+
+.nurse-vital-field--bp {
+  grid-column: span 2;
 }
 
 .nurse-vital-field__label {
@@ -452,6 +500,27 @@
   outline: 0;
 
   background: transparent;
+}
+
+.nurse-vital-field select {
+  width: 100%;
+  height: 40px;
+
+  padding: 0 11px;
+
+  color: var(--ink-900);
+  background: white;
+
+  border: 1px solid #d7e0e8;
+  border-radius: 9px;
+  outline: 0;
+}
+
+.nurse-vital-field select:focus {
+  border-color: var(--blue-700);
+
+  box-shadow:
+    0 0 0 3px rgba(57, 122, 171, 0.08);
 }
 
 .nurse-input-unit span {
@@ -500,11 +569,125 @@
   justify-content: flex-end;
   gap: 9px;
 
-  padding: 15px 18px;
+  padding: 14px 18px;
 
   background: #f8fafc;
 
   border-top: 1px solid var(--border);
+}
+
+.users-table__clickable-row {
+  cursor: pointer;
+}
+
+.users-table__clickable-row:hover {
+  background: #f8fafc;
+}
+
+.vital-summary {
+  color: var(--ink-700);
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.vital-detail-modal {
+  width: min(720px, 100%);
+}
+
+.vital-detail {
+  display: grid;
+  gap: 14px;
+
+  padding: 18px;
+}
+
+.vital-detail__state {
+  min-height: 180px;
+
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 9px;
+
+  color: var(--ink-500);
+}
+
+.vital-detail__meta {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.vital-detail__meta-item {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 4px 7px;
+
+  padding: 11px;
+
+  background: #f8fafc;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+}
+
+.vital-detail__meta-item svg {
+  grid-row: span 2;
+  color: var(--blue-700);
+}
+
+.vital-detail__meta-item span {
+  color: var(--ink-500);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.vital-detail__meta-item strong {
+  min-width: 0;
+
+  overflow: hidden;
+
+  color: var(--ink-900);
+
+  font-size: 13px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.vital-detail__grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.vital-detail__metric {
+  display: grid;
+  gap: 10px;
+
+  min-height: 92px;
+  padding: 13px;
+
+  background: white;
+  border: 1px solid #e2e9f0;
+  border-radius: 11px;
+}
+
+.vital-detail__metric span {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+
+  color: var(--ink-500);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.vital-detail__metric span svg {
+  color: var(--blue-700);
+}
+
+.vital-detail__metric strong {
+  color: var(--ink-900);
+  font-size: 18px;
 }
 
 @keyframes nurse-spin {
@@ -526,7 +709,7 @@
     flex-direction: column;
   }
 
-  .nurse-queue-card {
+  .vital-sign-queue-card {
     grid-template-columns:
       40px
       minmax(0, 1fr);
@@ -539,10 +722,54 @@
   }
 
   .nurse-vital-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .nurse-vital-field--bp {
+    grid-column: 1 / -1;
+  }
+
+  .vital-detail__meta,
+  .vital-detail__grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 520px) {
+  .nurse-modal-backdrop {
+    padding: 12px;
+  }
+
+  .nurse-modal__header {
+    padding: 14px;
+  }
+
+  .nurse-vital-form {
+    padding: 14px;
+  }
+
+  .nurse-vital-grid {
     grid-template-columns: 1fr;
   }
 
-  .nurse-vital-field--wide {
+  .nurse-vital-field--bp {
     grid-column: auto;
+  }
+
+  .nurse-bp {
+    grid-template-columns: 1fr;
+  }
+
+  .nurse-bp > strong {
+    display: none;
+  }
+
+  .nurse-modal__footer {
+    flex-direction: column-reverse;
+  }
+
+  .nurse-modal__footer .button {
+    width: 100%;
+    justify-content: center;
   }
 }

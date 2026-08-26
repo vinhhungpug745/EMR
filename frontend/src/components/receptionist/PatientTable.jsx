@@ -1,5 +1,6 @@
 import { CalendarDays, CreditCard, Edit3, Phone, UserRound } from 'lucide-react'
 
+import { formatVietnamDate } from '../../utils/dateTime'
 import { CatalogHeading } from '../admin/CatalogTableParts'
 
 export function PatientTable({ isLoading, loadingPatientId, onEdit, patients }) {
@@ -40,7 +41,7 @@ export function PatientTable({ isLoading, loadingPatientId, onEdit, patients }) 
                   </span>
                 </span>
               </td>
-              <td>{formatDate(patient.date_of_birth)}</td>
+              <td>{formatVietnamDate(patient.date_of_birth, 'Chưa có')}</td>
               <td>{patient.phone || 'Chưa có'}</td>
               <td>{getGenderLabel(patient.gender)}</td>
               <td>
@@ -82,10 +83,4 @@ function getGenderLabel(gender) {
     other: 'Khác',
   }
   return labels[gender] || 'Chưa chọn'
-}
-
-function formatDate(value) {
-  if (!value) return 'Chưa có'
-  const date = new Date(`${value}T00:00:00`)
-  return new Intl.DateTimeFormat('vi-VN').format(date)
 }

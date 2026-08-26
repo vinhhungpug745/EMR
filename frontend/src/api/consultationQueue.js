@@ -1,8 +1,7 @@
 import { apiRequest } from './http'
 import { endpoints } from './endpoints'
 
-
-export function getNurseQueue(params = {}) {
+export function getConsultationQueue(params = {}) {
   const searchParams = new URLSearchParams()
 
   if (params.search) {
@@ -24,6 +23,6 @@ export function getNurseQueue(params = {}) {
   const query = searchParams.toString()
 
   return apiRequest(
-    `${endpoints.nurseQueue}${query ? `?${query}` : ''}`,
+    `${endpoints.consultationQueue}${query ? `?${query}` : ''}`,
   )
 }

@@ -4,6 +4,7 @@ import { NavLink, Outlet, useNavigate } from 'react-router-dom'
 
 import { useAuth } from '../../auth/useAuth'
 import { getRoleConfig } from '../../config/roles'
+import { formatCurrentVietnamDate } from '../../utils/dateTime'
 import { Brand } from '../common/Brand'
 
 export function AppShell() {
@@ -93,12 +94,7 @@ export function AppShell() {
               <Bell size={19} />
             </button>
             <span className="topbar__date">
-              {new Intl.DateTimeFormat('vi-VN', {
-                weekday: 'long',
-                day: '2-digit',
-                month: '2-digit',
-                year: 'numeric',
-              }).format(new Date())}
+              {formatCurrentVietnamDate()}
             </span>
           </div>
         </header>

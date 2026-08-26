@@ -1,11 +1,12 @@
 import { apiRequest } from './http'
 import { endpoints } from './endpoints'
 
-export function getLabTestCatalogs({
+export async function getLabTestCatalogs({
   search = '',
   ordering = 'name',
   page = 1,
   pageSize = 8,
+  activeOnly = false,
 } = {}) {
   const params = new URLSearchParams()
 
@@ -14,7 +15,20 @@ export function getLabTestCatalogs({
   params.set('page', page)
   params.set('page_size', pageSize)
 
-  return apiRequest(`${endpoints.labTestCatalogs}?${params.toString()}`)
+  const data = await apiRequest(`${endpoints.labTestCatalogs}?${params.toString()}`)
+
+  if (!activeOnly) return data
+
+  const results = Array.isArray(data) ? data : data.results || []
+
+  if (Array.isArray(data)) {
+    return results.filter((test) => test.active)
+  }
+
+  return {
+    ...data,
+    results: results.filter((test) => test.active),
+  }
 }
 
 export function createLabTestCatalog(data) {

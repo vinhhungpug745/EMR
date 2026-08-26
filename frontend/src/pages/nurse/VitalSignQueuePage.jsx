@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useState } from 'react'
 import {
   HeartPulse,
   RefreshCcw,
@@ -7,11 +7,12 @@ import {
 } from 'lucide-react'
 
 import { Navigate } from 'react-router-dom'
-import { getNurseQueue } from '../../api/nursequeue'
+import { getDepartments } from '../../api/departments'
+import { getVitalSignQueue } from '../../api/vitalSignQueue'
 import { createVitalSign } from '../../api/vitalsigns'
 
 import { useAuth } from '../../auth/useAuth'
-import NurseQueueTable from '../../components/nurse/NurseQueueTable'
+import VitalSignQueueTable from '../../components/nurse/VitalSignQueueTable'
 import VitalSignModal from '../../components/nurse/VitalSignModal'
 import {PaginationFooter} from "../../components/common/PaginationFooter"
 import {Snackbar} from "../../components/common/Snackbar"
@@ -23,10 +24,12 @@ import '../../styles/nurse.css'
 
 const PAGE_SIZE = 8
 
-function NursePage() {
+function VitalSignQueuePage() {
   const { user } = useAuth()
 
   const [search, setSearch] = useState('')
+  const [departments, setDepartments] = useState([])
+  const [isLoadingDepartments, setIsLoadingDepartments] = useState(false)
 
   const [selectedEncounter, setSelectedEncounter] = useState(null)
 
@@ -37,7 +40,7 @@ function NursePage() {
 
   const fetchQueue = useCallback(
     ({ page, pageSize }) =>
-      getNurseQueue({
+      getVitalSignQueue({
         search,
         ordering: 'visit__arrived_at',
         page,
@@ -68,9 +71,33 @@ function NursePage() {
     return <Navigate to="/app" replace />
   }
 
+  async function loadDepartmentsIfNeeded() {
+    if (departments.length > 0 || isLoadingDepartments) return
+
+    setIsLoadingDepartments(true)
+
+    try {
+      const data = await getDepartments({
+        page: 1,
+        pageSize: 50,
+        ordering: 'name',
+      })
+
+      setDepartments(data.results || [])
+    } catch (error) {
+      showSnackbar({
+        type: 'error',
+        message: error.message || 'Không thể tải danh sách khoa.',
+      })
+    } finally {
+      setIsLoadingDepartments(false)
+    }
+  }
+
   function openVitalSignForm(encounter) {
     setFormError(null)
     setSelectedEncounter(encounter)
+    loadDepartmentsIfNeeded()
   }
 
 
@@ -174,21 +201,15 @@ function NursePage() {
 
 
       <section className="nurse-panel">
-        <NurseQueueTable
+        <VitalSignQueueTable
           patients={queue}
           isLoading={isLoading}
           onMeasure={openVitalSignForm}
+          page={page}
+          pageSize={pageSize}
         />
 
-        {!isLoading && pagination.count === 0 && (
-          <div className="users-table__empty">
-            <strong>Không có bệnh nhân đang chờ</strong>
-
-            <span>
-              Chưa có bệnh nhân nào trong hàng đợi đo sinh hiệu.
-            </span>
-          </div>
-        )}
+        
 
         {!isLoading && (
           <PaginationFooter
@@ -210,9 +231,12 @@ function NursePage() {
       {selectedEncounter && (
         <VitalSignModal
           encounter={selectedEncounter}
+          departments={departments}
+          isLoadingDepartments={isLoadingDepartments}
           isSubmitting={isSubmitting}
           error={formError}
           onClose={closeVitalSignForm}
+          onDepartmentFocus={loadDepartmentsIfNeeded}
           onSubmit={handleCreateVitalSign}
         />
       )}
@@ -220,4 +244,4 @@ function NursePage() {
   )
 }
 
-export default NursePage
+export default VitalSignQueuePage

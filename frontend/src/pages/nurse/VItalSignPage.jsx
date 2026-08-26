@@ -1,9 +1,9 @@
 import { useCallback, useState } from 'react'
 import { Activity, RefreshCw, Search } from 'lucide-react'
 
-import { getVitalSigns, updateVitalSign } from '../../api/vitalsigns'
+import { getVitalSign, getVitalSigns } from '../../api/vitalsigns'
 import { PaginationFooter } from '../../components/common/PaginationFooter'
-import VitalSignModal from '../../components/nurse/VitalSignModal'
+import VitalSignDetailModal from '../../components/nurse/VitalSignDetailModal'
 import VitalSignTable from '../../components/nurse/VitalSignTable'
 import { usePaginatedResource } from '../../utils/usePaginatedResource'
 
@@ -14,8 +14,8 @@ const PAGE_SIZE = 8
 export default function VitalSignsPage() {
   const [search, setSearch] = useState('')
   const [selectedVitalSign, setSelectedVitalSign] = useState(null)
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [formError, setFormError] = useState('')
+  const [isDetailLoading, setIsDetailLoading] = useState(false)
+  const [detailError, setDetailError] = useState('')
 
   const fetchVitalSigns = useCallback(({ page, pageSize }) => getVitalSigns({
     search,
@@ -26,7 +26,6 @@ export default function VitalSignsPage() {
 
   const {
     items: vitalSigns,
-    setItems: setVitalSigns,
     page,
     setPage,
     pageSize,
@@ -41,27 +40,21 @@ export default function VitalSignsPage() {
     errorFallback: 'Không thể tải danh sách sinh hiệu.',
   })
 
-  async function handleUpdateVitalSign(payload) {
-    setIsSubmitting(true)
-    setFormError('')
+  async function handleViewVitalSign(item) {
+    setSelectedVitalSign(item)
+    setIsDetailLoading(true)
+    setDetailError('')
 
     try {
-      const updated = await updateVitalSign(selectedVitalSign.id, payload)
-
-      setVitalSigns((items) => items.map((item) => (
-        item.id === selectedVitalSign.id
-          ? { ...item, ...updated }
-          : item
-      )))
-
-      setSelectedVitalSign(null)
+      const detail = await getVitalSign(item.id)
+      setSelectedVitalSign(detail)
     } catch (requestError) {
-      setFormError(
+      setDetailError(
         requestError?.message ||
-        'Không thể cập nhật sinh hiệu.',
+        'Không thể tải chi tiết sinh hiệu.',
       )
     } finally {
-      setIsSubmitting(false)
+      setIsDetailLoading(false)
     }
   }
 
@@ -70,7 +63,7 @@ export default function VitalSignsPage() {
       <header className="users-page__header">
         <div>
           <h1>Sinh hiệu</h1>
-          <p>Tra cứu và chỉnh sửa các lần đo sinh hiệu đã ghi nhận.</p>
+          <p>Tra cứu các lần đo sinh hiệu và bấm vào từng bản ghi để xem chi tiết.</p>
         </div>
 
         <div className="nurse-page__summary">
@@ -113,7 +106,7 @@ export default function VitalSignsPage() {
       <VitalSignTable
         vitalSigns={vitalSigns}
         isLoading={isLoading}
-        onEdit={setSelectedVitalSign}
+        onView={handleViewVitalSign}
       />
 
       {!isLoading && (
@@ -128,17 +121,16 @@ export default function VitalSignsPage() {
         />
       )}
 
-      <VitalSignModal
+      <VitalSignDetailModal
         vitalSign={selectedVitalSign}
-        isSubmitting={isSubmitting}
-        error={formError}
+        isLoading={isDetailLoading}
+        error={detailError}
         onClose={() => {
-          if (!isSubmitting) {
+          if (!isDetailLoading) {
             setSelectedVitalSign(null)
-            setFormError('')
+            setDetailError('')
           }
         }}
-        onSubmit={handleUpdateVitalSign}
       />
     </div>
   )

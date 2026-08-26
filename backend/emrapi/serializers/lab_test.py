@@ -56,6 +56,7 @@ class LabTestSerializer(ModelCleanSerializer):
             'performed_by',
             'performed_by_detail',
             'ordered_at',
+            'status',
             'status_display',
             'created_at',
             'updated_at',
@@ -102,9 +103,10 @@ class LabTestSerializer(ModelCleanSerializer):
         doctor_profile = getattr(staff, 'doctor_profile', None)
         if doctor_profile is None:
             raise serializers.ValidationError({
-                'ordered_by': 'Chi bac si moi duoc chi dinh xet nghiem.'
+                 'ordered_by': 'Chỉ bác sĩ mới được chỉ định xét nghiệm.'
             })
         validated_data['ordered_by'] = doctor_profile
+        validated_data['status'] = LabTest.Status.ORDERED
         return super().create(validated_data)
 
     def update(self, instance, validated_data):
@@ -115,7 +117,7 @@ class LabTestSerializer(ModelCleanSerializer):
             if technician_profile is None:
                 raise serializers.ValidationError({
                     'performed_by': (
-                        'Chi ky thuat vien moi duoc cap nhat qua trinh xet nghiem.'
+                        'Chỉ có nhân viên xét nghiệm mới được cập nhật quá trình xét nghiệm.'
                     )
                 })
             validated_data['performed_by'] = technician_profile

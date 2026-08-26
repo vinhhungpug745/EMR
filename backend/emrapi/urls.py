@@ -6,8 +6,11 @@ from .views import (
     CurrentUserView,
     DepartmentViewSet,
     LabTestCatalogViewSet,
+    LabTestViewSet,
+    LabTechnicianQueueView,
     LoginView,
     LogoutView,
+    MedicalRecordViewSet,
     MedicationViewSet,
     MyProfileView,
     StaffProfileViewSet,
@@ -16,13 +19,16 @@ from .views import (
     EncounterViewSet,
     VisitViewSet,
     VitalSignViewSet,
-    NurseQueueView,
+    VitalSignQueueView,
+    ConsultationQueueView,
 )
 
 router = DefaultRouter()
 router.register(r'departments', DepartmentViewSet, basename='department')
 router.register(r'medications', MedicationViewSet, basename='medication')
+router.register(r'medical-records', MedicalRecordViewSet, basename='medical-record')
 router.register(r'lab-test-catalogs', LabTestCatalogViewSet, basename='lab-test-catalog')
+router.register(r'lab-tests', LabTestViewSet, basename='lab-test')
 router.register(r'users', UserViewSet, basename='user')
 router.register(r'staff-profiles', StaffProfileViewSet, basename='staff-profile')
 router.register(r'patients', PatientViewSet, basename='patient')
@@ -38,6 +44,8 @@ urlpatterns = [
     path('auth/me/', CurrentUserView.as_view(), name='auth-me'),
     path('auth/logout/', LogoutView.as_view(), name='auth-logout'),
     path('my-profile/', MyProfileView.as_view(), name='my-profile'),
-    path('nurse-queue/', NurseQueueView.as_view(), name='nurse-queue'),
+    path('vital-sign-queue/', VitalSignQueueView.as_view(), name='vital-sign-queue'),
+    path('consultation-queue/', ConsultationQueueView.as_view(), name='consultation-queue'),
+    path('labtechnician-queue/',LabTechnicianQueueView.as_view(), name='labtechnician-queue'),
     path('', include(router.urls)),
 ]

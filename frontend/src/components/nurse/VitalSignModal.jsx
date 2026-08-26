@@ -4,6 +4,7 @@ import {
   HeartPulse,
   Ruler,
   Save,
+  Stethoscope,
   Thermometer,
   Weight,
   Wind,
@@ -12,6 +13,7 @@ import {
 
 
 const INITIAL_FORM = {
+  department: '',
   temperature: '',
   pulse: '',
   systolic_bp: '',
@@ -23,10 +25,13 @@ const INITIAL_FORM = {
 
 
 function VitalSignModal({
+  departments = [],
   encounter,
+  isLoadingDepartments = false,
   isSubmitting,
   error,
   onClose,
+  onDepartmentFocus,
   onSubmit,
 }) {
   const [form, setForm] = useState(INITIAL_FORM)
@@ -34,7 +39,12 @@ function VitalSignModal({
 
   useEffect(() => {
     if (encounter) {
-      setForm(INITIAL_FORM)
+      setForm({
+        ...INITIAL_FORM,
+        department: encounter.department
+          ? String(encounter.department)
+          : '',
+      })
     }
   }, [encounter])
 
@@ -66,6 +76,7 @@ function VitalSignModal({
 
     onSubmit({
       encounter: encounter.id,
+      department: form.department,
 
       temperature:
         toNumberOrNull(form.temperature),
@@ -128,92 +139,128 @@ function VitalSignModal({
         </header>
 
         <form onSubmit={handleSubmit}>
-          <div className="nurse-vital-grid">
-            <VitalField
-              icon={<Thermometer size={15} />}
-              label="Nhiệt độ"
-              name="temperature"
-              value={form.temperature}
-              onChange={handleChange}
-              unit="°C"
-              step="0.1"
-              placeholder="37.0"
-            />
+          <div className="nurse-vital-form">
+            <section className="nurse-vital-section">
+              <label className="nurse-vital-field nurse-vital-field--department">
+                <span className="nurse-vital-field__label">
+                  <Stethoscope size={15} />
+                  Khoa khám
+                </span>
 
-            <VitalField
-              icon={<Activity size={15} />}
-              label="Mạch"
-              name="pulse"
-              value={form.pulse}
-              onChange={handleChange}
-              unit="bpm"
-              placeholder="80"
-            />
+                <select
+                  name="department"
+                  value={form.department}
+                  required
+                  disabled={isSubmitting || isLoadingDepartments}
+                  onChange={handleChange}
+                  onFocus={onDepartmentFocus}
+                  onMouseDown={onDepartmentFocus}
+                >
+                  <option value="">
+                    {isLoadingDepartments
+                      ? 'Đang tải khoa...'
+                      : 'Chọn khoa khám'}
+                  </option>
 
-            <div className="nurse-vital-field nurse-vital-field--wide">
-              <span className="nurse-vital-field__label">
-                <HeartPulse size={15} />
-                Huyết áp
-              </span>
+                  {departments.map((department) => (
+                    <option
+                      key={department.id}
+                      value={department.id}
+                    >
+                      {department.name}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            </section>
 
-              <div className="nurse-bp">
-                <div className="nurse-input-unit">
-                  <input
-                    type="number"
-                    name="systolic_bp"
-                    value={form.systolic_bp}
-                    onChange={handleChange}
-                    placeholder="120"
-                  />
-                  <span>mmHg</span>
-                </div>
+            <section className="nurse-vital-grid">
+              <VitalField
+                icon={<Thermometer size={15} />}
+                label="Nhiệt độ"
+                name="temperature"
+                value={form.temperature}
+                onChange={handleChange}
+                unit="°C"
+                step="0.1"
+                placeholder="37.0"
+              />
 
-                <strong>/</strong>
+              <VitalField
+                icon={<Activity size={15} />}
+                label="Mạch"
+                name="pulse"
+                value={form.pulse}
+                onChange={handleChange}
+                unit="bpm"
+                placeholder="80"
+              />
 
-                <div className="nurse-input-unit">
-                  <input
-                    type="number"
-                    name="diastolic_bp"
-                    value={form.diastolic_bp}
-                    onChange={handleChange}
-                    placeholder="80"
-                  />
-                  <span>mmHg</span>
+              <VitalField
+                icon={<Wind size={15} />}
+                label="Nhịp thở"
+                name="respiratory_rate"
+                value={form.respiratory_rate}
+                onChange={handleChange}
+                unit="lần/phút"
+                placeholder="18"
+              />
+
+              <div className="nurse-vital-field nurse-vital-field--bp">
+                <span className="nurse-vital-field__label">
+                  <HeartPulse size={15} />
+                  Huyết áp
+                </span>
+
+                <div className="nurse-bp">
+                  <div className="nurse-input-unit">
+                    <input
+                      type="number"
+                      name="systolic_bp"
+                      value={form.systolic_bp}
+                      onChange={handleChange}
+                      placeholder="120"
+                    />
+                    <span>mmHg</span>
+                  </div>
+
+                  <strong>/</strong>
+
+                  <div className="nurse-input-unit">
+                    <input
+                      type="number"
+                      name="diastolic_bp"
+                      value={form.diastolic_bp}
+                      onChange={handleChange}
+                      placeholder="80"
+                    />
+                    <span>mmHg</span>
+                  </div>
                 </div>
               </div>
-            </div>
 
-            <VitalField
-              icon={<Wind size={15} />}
-              label="Nhịp thở"
-              name="respiratory_rate"
-              value={form.respiratory_rate}
-              onChange={handleChange}
-              unit="lần/phút"
-              placeholder="18"
-            />
+              <VitalField
+                icon={<Ruler size={15} />}
+                label="Chiều cao"
+                name="height_cm"
+                value={form.height_cm}
+                onChange={handleChange}
+                unit="cm"
+                step="0.01"
+                placeholder="170"
+              />
 
-            <VitalField
-              icon={<Ruler size={15} />}
-              label="Chiều cao"
-              name="height_cm"
-              value={form.height_cm}
-              onChange={handleChange}
-              unit="cm"
-              step="0.01"
-              placeholder="170"
-            />
-
-            <VitalField
-              icon={<Weight size={15} />}
-              label="Cân nặng"
-              name="weight_kg"
-              value={form.weight_kg}
-              onChange={handleChange}
-              unit="kg"
-              step="0.01"
-              placeholder="65"
-            />
+              <VitalField
+                icon={<Weight size={15} />}
+                label="Cân nặng"
+                name="weight_kg"
+                value={form.weight_kg}
+                onChange={handleChange}
+                unit="kg"
+                step="0.01"
+                placeholder="65"
+              />
+            </section>
           </div>
 
           {error && (

@@ -358,7 +358,7 @@ STAFF_DATA = [
         'employee_code': 'XN0002',
         'department': 'Khoa Xét nghiệm',
         'phone': '0901000042',
-        'laboratory_unit': 'Sinh hóa',
+        'laboratory_unit': 'Hóa sinh',
         'license': 'CC-XN-0002',
     },
     {

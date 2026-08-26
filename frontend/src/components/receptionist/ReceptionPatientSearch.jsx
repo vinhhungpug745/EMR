@@ -1,5 +1,6 @@
 import { ClipboardList, RefreshCw, Search } from 'lucide-react'
 
+import { formatVietnamDate } from '../../utils/dateTime'
 import { PaginationFooter } from '../common/PaginationFooter'
 
 export function ReceptionPatientSearch({
@@ -117,7 +118,7 @@ function PatientSelectCard({ isSelected, isSelecting, onSelect, patient }) {
       <span className="reception-patient__content">
         <strong>{patient.full_name}</strong>
         <small>
-          {patient.phone || 'Chưa có SĐT'} · {formatDate(patient.date_of_birth)}
+          {patient.phone || 'Chưa có SĐT'} · {formatVietnamDate(patient.date_of_birth, 'Chưa có ngày sinh')}
           {isSelecting ? ' · Đang chọn' : ''}
         </small>
       </span>
@@ -133,10 +134,4 @@ function getInitials(name = '') {
     .map((part) => part[0])
     .join('')
     .toUpperCase() || 'BN'
-}
-
-function formatDate(value) {
-  if (!value) return 'Chưa có ngày sinh'
-  const date = new Date(`${value}T00:00:00`)
-  return new Intl.DateTimeFormat('vi-VN').format(date)
 }

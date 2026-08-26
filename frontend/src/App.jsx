@@ -4,6 +4,7 @@ import { ProtectedRoute } from './auth/ProtectedRoute'
 import { AppShell } from './components/layout/AppShell'
 import { DashboardPage } from './pages/DashboardPage'
 import { LoginPage } from './pages/LoginPage'
+import MedicalRecordPage from './pages/doctor/MedicalRecordPage'
 import { ModulePage } from './pages/ModulePage'
 import DepartmentPage from './pages/admin/DepartmentPage'
 import LabTestCatalogPage from './pages/admin/LabTestCatalogPage'
@@ -12,8 +13,11 @@ import StaffProfileManagementPage from './pages/admin/StaffProfileManagementPage
 import UserManagementPage from './pages/admin/UserManagementPage'
 import PatientPage from './pages/receptionist/PatientPage'
 import ReceptionPage from './pages/receptionist/ReceptionPage'
-import NursePage from './pages/nurse/NursePage'
-import VitalSignsPage from './pages/nurse/VItalSignPage'
+import VitalSignQueuePage from './pages/nurse/VitalSignQueuePage'
+import VitalSignsPage from './pages/nurse/VitalSignPage'
+import ConsultationQueuePage from './pages/doctor/ConsultationQueuePage'
+import EncounterExamPage from './pages/doctor/EncounterExamPage'
+import EncounterListPage from './pages/doctor/EncounterListPage'
 
 function App() {
   return (
@@ -28,9 +32,13 @@ function App() {
           <Route path="medications" element={<MedicationPage />} />
           <Route path="lab-test-catalogs" element={<LabTestCatalogPage />} />
           <Route path="patients" element={<PatientPage />} />
+          <Route path="medical-records" element={<MedicalRecordPage />} />
           <Route path="reception" element={<ReceptionPage />} />
-          <Route path="nurse-queue" element={<NursePage />} />
+          <Route path="vital-sign-queue" element={<VitalSignQueuePage />} />
           <Route path="vital-signs" element={<VitalSignsPage />} />
+          <Route path="consultation-queue" element={<ConsultationQueuePage />} />
+          <Route path="encounters" element={<EncounterListPage />} />
+          <Route path="encounters/:encounterId" element={<EncounterExamPage />} />
           <Route path=":moduleId" element={<ModulePage />} />
         </Route>
       </Route>

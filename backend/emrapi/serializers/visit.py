@@ -9,9 +9,21 @@ from .staff_profile import StaffProfileSummarySerializer
 
 
 class VisitSummarySerializer(ModelCleanSerializer):
+    patient_name = serializers.CharField(
+        source='medical_record.patient.full_name',
+        read_only=True,
+    )
+
     class Meta:
         model = Visit
-        fields = ['id', 'visit_number', 'arrived_at', 'reason', 'status']
+        fields = [
+            'id',
+            'visit_number',
+            'patient_name',
+            'arrived_at',
+            'reason',
+            'status',
+        ]
         read_only_fields = fields
 
 

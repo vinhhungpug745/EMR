@@ -19,8 +19,14 @@ export const endpoints = {
   labTestCatalogs: '/lab-test-catalogs/',
   labTestCatalogDetail: (id) => `/lab-test-catalogs/${id}/`,
 
+  labTests: '/lab-tests/',
+  labTestDetail: (id) => `/lab-tests/${id}/`,
+
   patients: '/patients/',
   patientDetail: (id) => `/patients/${id}/`,
+
+  medicalRecords: '/medical-records/',
+  medicalRecordDetail: (id) => `/medical-records/${id}/`,
 
   visits: '/visits/',
   visitDetail: (id) => `/visits/${id}/`,
@@ -30,5 +36,8 @@ export const endpoints = {
 
   vitalSigns: '/vital-signs/',
   vitalSignDetail: (id) => `/vital-signs/${id}/`,
-  nurseQueue: '/nurse-queue/',
+  
+  vitalSignQueue: '/vital-sign-queue/',
+  consultationQueue: '/consultation-queue/',
+  labtechnicianQueue: '/labtechnician-queue/',
 }

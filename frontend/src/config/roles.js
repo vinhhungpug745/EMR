@@ -69,7 +69,7 @@ export const ROLE_CONFIG = {
     description: 'Tiếp nhận hàng đợi điều dưỡng và cập nhật chỉ số lâm sàng.',
     nav: [
       sharedDashboard,
-      { id: 'nurse-queue', label: 'Chờ đo sinh hiệu', path: '/app/nurse-queue', icon: ListChecks },
+      { id: 'vital-sign-queue', label: 'Chờ đo sinh hiệu', path: '/app/vital-sign-queue', icon: ListChecks },
       { id: 'vital-signs', label: 'Sinh hiệu', path: '/app/vital-signs', icon: Activity },
       { id: 'care-history', label: 'Lịch sử chăm sóc', path: '/app/care-history', icon: FileText },
     ],
@@ -85,8 +85,8 @@ export const ROLE_CONFIG = {
     description: 'Theo dõi hàng đợi, lịch sử điều trị và chỉ định chuyên môn.',
     nav: [
       sharedDashboard,
-      { id: 'doctor-queue', label: 'Chờ khám', path: '/app/doctor-queue', icon: ListChecks },
-      { id: 'encounters', label: 'Lượt khám', path: '/app/encounters', icon: CalendarDays },
+      { id: 'consultation-queue', label: 'Hàng đợi khám', path: '/app/consultation-queue', icon: ListChecks },
+      { id: 'encounters', label: 'Thực hiện khám bệnh', path: '/app/encounters', icon: Stethoscope  },
       { id: 'medical-records', label: 'Hồ sơ bệnh án', path: '/app/medical-records', icon: BookOpenText },
       { id: 'lab-tests', label: 'Xét nghiệm', path: '/app/lab-tests', icon: FlaskConical },
       { id: 'prescriptions', label: 'Đơn thuốc', path: '/app/prescriptions', icon: Pill },

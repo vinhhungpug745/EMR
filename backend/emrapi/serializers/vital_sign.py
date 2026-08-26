@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from emrapi.models import VitalSign, Encounter
+from emrapi.models import VitalSign, Encounter, Department
 
 from .base import ModelCleanSerializer, get_request_staff
 from .encounter import EncounterSummarySerializer
@@ -8,6 +8,11 @@ from .staff_profile import StaffProfileSummarySerializer
 
 
 class VitalSignSerializer(ModelCleanSerializer):
+    department = serializers.PrimaryKeyRelatedField(
+        queryset=Department.objects.filter(active=True),
+        write_only=True,
+        required=False,
+    )
     encounter_detail = EncounterSummarySerializer(source='encounter', read_only=True)
     recorded_by_detail = StaffProfileSummarySerializer(
         source='recorded_by',
@@ -28,6 +33,7 @@ class VitalSignSerializer(ModelCleanSerializer):
         fields = [
             'id',
             'encounter',
+            'department',
             'encounter_detail',
             'visit_number',
             'patient_name',
@@ -111,8 +117,9 @@ class VitalSignSerializer(ModelCleanSerializer):
 
 
 
-class NurseQueueSerializer(serializers.ModelSerializer):
+class VitalSignQueueSerializer(serializers.ModelSerializer):
     visit_number = serializers.CharField(source='visit.visit_number',read_only=True,)
+    reason = serializers.CharField(source='visit.reason', read_only=True,)
     patient_name = serializers.CharField(source='visit.medical_record.patient.full_name',read_only=True,)
     patient_phone = serializers.CharField(source='visit.medical_record.patient.phone',read_only=True,)
     date_of_birth = serializers.DateField(source='visit.medical_record.patient.date_of_birth',read_only=True,)
@@ -127,6 +134,8 @@ class NurseQueueSerializer(serializers.ModelSerializer):
             'id',
             'visit',
             'visit_number',
+            'reason',
+            'department',
             'patient_name',
             'patient_phone',
             'date_of_birth',

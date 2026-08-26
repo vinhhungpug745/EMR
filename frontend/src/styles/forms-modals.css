@@ -102,6 +102,45 @@
   align-self: start;
 }
 
+.medical-record-profile {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+
+  margin-bottom: 18px;
+  padding: 12px;
+
+  background: var(--surface-subtle);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+}
+
+.medical-record-profile div {
+  min-width: 0;
+  display: grid;
+  gap: 4px;
+}
+
+.medical-record-profile span {
+  color: var(--ink-500);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.medical-record-profile strong {
+  overflow: hidden;
+
+  color: var(--ink-900);
+
+  font-size: 13px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.medical-record-form-grid {
+  align-items: start;
+}
+
 .user-form__field > small {
   color: var(--ink-500);
   font-weight: 400;
@@ -198,6 +237,16 @@
   }
 
   .user-form__grid {
+    grid-template-columns: 1fr;
+  }
+
+  .medical-record-profile {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 460px) {
+  .medical-record-profile {
     grid-template-columns: 1fr;
   }
 }

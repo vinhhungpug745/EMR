@@ -6,23 +6,15 @@ import {
   UserRound,
 } from 'lucide-react'
 
-
-function formatTime(value) {
-  if (!value) {
-    return '--:--'
-  }
-
-  return new Intl.DateTimeFormat('vi-VN', {
-    hour: '2-digit',
-    minute: '2-digit',
-  }).format(new Date(value))
-}
+import { formatVietnamTime } from '../../utils/dateTime'
 
 
-function NurseQueueTable({
+function VitalSignQueueTable({
   patients = [],
   isLoading = false,
   onMeasure,
+  page = 1,
+  pageSize = 8,
 }) {
   if (isLoading) {
     return (
@@ -50,18 +42,18 @@ function NurseQueueTable({
   }
 
   return (
-    <div className="nurse-queue">
+    <div className="vital-sign-queue">
       {patients.map((item, index) => (
         <article
           key={item.id}
-          className="nurse-queue-card"
+          className="vital-sign-queue-card"
         >
-          <div className="nurse-queue-card__number">
-            {index + 1}
+          <div className="vital-sign-queue-card__number">
+            {(page - 1) * pageSize + index + 1}
           </div>
 
-          <div className="nurse-queue-card__content">
-            <div className="nurse-queue-card__header">
+          <div className="vital-sign-queue-card__content">
+            <div className="vital-sign-queue-card__header">
               <div>
                 <strong>
                   {item.patient_name}
@@ -78,7 +70,7 @@ function NurseQueueTable({
               </span>
             </div>
 
-            <div className="nurse-queue-card__meta">
+            <div className="vital-sign-queue-card__meta">
               <span>
                 <UserRound size={14} />
                 {item.department_name || 'Chưa phân khoa'}
@@ -91,17 +83,15 @@ function NurseQueueTable({
 
               <span>
                 <Clock3 size={14} />
-                {formatTime(item.arrived_at)}
+                {formatVietnamTime(item.arrived_at)}
               </span>
             </div>
 
-            <div className="nurse-queue-card__reason">
+            <div className="vital-sign-queue-card__reason">
               <span>Lý do khám</span>
 
               <p>
-                {item.reason ||
-                  item.chief_complaint ||
-                  'Không có thông tin'}
+                {item.reason || item.chief_complaint || 'Không có thông tin'}
               </p>
             </div>
           </div>
@@ -120,4 +110,4 @@ function NurseQueueTable({
   )
 }
 
-export default NurseQueueTable
+export default VitalSignQueueTable

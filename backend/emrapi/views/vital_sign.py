@@ -4,7 +4,7 @@ from rest_framework.exceptions import ValidationError
 
 from emrapi.models import Encounter, VitalSign
 from emrapi.permission import IsAnyStaff
-from emrapi.serializers import VitalSignSerializer,NurseQueueSerializer
+from emrapi.serializers import VitalSignSerializer, VitalSignQueueSerializer
 
 
 class VitalSignViewSet(viewsets.ModelViewSet):
@@ -57,6 +57,7 @@ class VitalSignViewSet(viewsets.ModelViewSet):
     @transaction.atomic
     def perform_create(self, serializer):
         encounter_id = serializer.validated_data['encounter'].pk
+        department = serializer.validated_data.pop('department', None)
 
         encounter = (
             Encounter.objects
@@ -80,6 +81,9 @@ class VitalSignViewSet(viewsets.ModelViewSet):
                 'encounter': 'Khong the ghi sinh hieu cho luot kham nay.'
             })
 
+        if department and encounter.department_id != department.id:
+            encounter.department = department
+
         vital_sign = serializer.save(encounter=encounter,)
 
         # Chỉ lần đo đầu tiên mới chuyển bệnh nhân
@@ -89,7 +93,15 @@ class VitalSignViewSet(viewsets.ModelViewSet):
 
             encounter.save(
                 update_fields=[
+                    'department',
                     'status',
+                    'updated_at',
+                ]
+            )
+        elif department:
+            encounter.save(
+                update_fields=[
+                    'department',
                     'updated_at',
                 ]
             )
@@ -106,8 +118,8 @@ class VitalSignViewSet(viewsets.ModelViewSet):
         serializer.save()
 
 
-class NurseQueueView(generics.ListAPIView):
-    serializer_class = NurseQueueSerializer
+class VitalSignQueueView(generics.ListAPIView):
+    serializer_class = VitalSignQueueSerializer
     permission_classes = [IsAnyStaff]
 
     queryset = (

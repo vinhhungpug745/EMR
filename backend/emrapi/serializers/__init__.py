@@ -2,16 +2,10 @@ from .auth import AuthenticatedUserSerializer, LoginSerializer, LogoutSerializer
 from .audit_log import AuditLogSerializer
 from .department import DepartmentSerializer, DepartmentSummarySerializer
 from .doctor_profile import DoctorProfileSerializer, DoctorProfileSummarySerializer
-from .encounter import EncounterSerializer, EncounterSummarySerializer
-from .lab_technician_profile import (
-    LabTechnicianProfileSerializer,
-    LabTechnicianProfileSummarySerializer,
-)
+from .encounter import EncounterSerializer, EncounterSummarySerializer, ConsultationQueueSerializer
+from .lab_technician_profile import LabTechnicianProfileSerializer, LabTechnicianProfileSummarySerializer
 from .lab_test import LabTestSerializer
-from .lab_test_catalog import (
-    LabTestCatalogSerializer,
-    LabTestCatalogSummarySerializer,
-)
+from .lab_test_catalog import LabTestCatalogSerializer, LabTestCatalogSummarySerializer
 from .medical_attachment import MedicalAttachmentSerializer
 from .medical_record import MedicalRecordSerializer, MedicalRecordSummarySerializer
 from .medication import MedicationSerializer, MedicationSummarySerializer
@@ -21,7 +15,7 @@ from .prescription import PrescriptionItemSerializer, PrescriptionSerializer
 from .receptionist_profile import ReceptionistProfileSerializer
 from .staff_profile import StaffProfileSerializer, StaffProfileSummarySerializer,MyProfileSerializer
 from .user import UserSerializer, UserSummarySerializer
-from .vital_sign import VitalSignSerializer,NurseQueueSerializer
+from .vital_sign import VitalSignSerializer, VitalSignQueueSerializer
 from .visit import VisitSerializer, VisitSummarySerializer
 
 __all__ = [
@@ -60,5 +54,6 @@ __all__ = [
     'VisitSerializer',
     'VisitSummarySerializer',
     'VitalSignSerializer',
-    'NurseQueueSerializer',
+    'VitalSignQueueSerializer',
+    'ConsultationQueueSerializer'
 ]
