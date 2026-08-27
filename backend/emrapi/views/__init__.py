@@ -7,6 +7,7 @@ from .medical_record import MedicalRecordViewSet
 from .user import UserViewSet
 from .staff_profile import StaffProfileViewSet,MyProfileView
 from .patient import PatientViewSet
+from .prescription import PrescriptionViewSet
 from .encounter import EncounterViewSet, ConsultationQueueView
 from .visit import VisitViewSet
 from .vital_sign import VitalSignViewSet, VitalSignQueueView
@@ -25,6 +26,7 @@ __all__ = [
     'StaffProfileViewSet',
     'MyProfileView',
     'PatientViewSet',
+    'PrescriptionViewSet',
     'EncounterViewSet',
     'VisitViewSet',
     'VitalSignViewSet',

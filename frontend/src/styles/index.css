@@ -1,0 +1,17 @@
+@import './base/tokens.css';
+@import './base/global.css';
+
+@import './layout/shell.css';
+@import './layout/dashboard.css';
+
+@import './components/users-layout.css';
+@import './components/users-tables.css';
+@import './components/forms-modals.css';
+@import './components/snackbar.css';
+
+@import './features/auth.css';
+@import './features/catalog.css';
+@import './features/reception.css';
+@import './features/nurse.css';
+@import './features/doctor.css';
+@import './features/technician.css';

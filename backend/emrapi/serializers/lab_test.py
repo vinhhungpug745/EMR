@@ -56,7 +56,6 @@ class LabTestSerializer(ModelCleanSerializer):
             'performed_by',
             'performed_by_detail',
             'ordered_at',
-            'status',
             'status_display',
             'created_at',
             'updated_at',

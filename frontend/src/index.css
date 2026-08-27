@@ -1,6 +1,1 @@
-@import './styles/tokens.css';
-@import './styles/global.css';
-@import './styles/auth.css';
-@import './styles/shell.css';
-@import './styles/dashboard.css';
-@import './styles/users.css';
+@import './styles/index.css';

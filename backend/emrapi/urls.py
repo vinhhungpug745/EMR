@@ -13,6 +13,7 @@ from .views import (
     MedicalRecordViewSet,
     MedicationViewSet,
     MyProfileView,
+    PrescriptionViewSet,
     StaffProfileViewSet,
     UserViewSet,
     PatientViewSet,
@@ -29,6 +30,7 @@ router.register(r'medications', MedicationViewSet, basename='medication')
 router.register(r'medical-records', MedicalRecordViewSet, basename='medical-record')
 router.register(r'lab-test-catalogs', LabTestCatalogViewSet, basename='lab-test-catalog')
 router.register(r'lab-tests', LabTestViewSet, basename='lab-test')
+router.register(r'prescriptions', PrescriptionViewSet, basename='prescription')
 router.register(r'users', UserViewSet, basename='user')
 router.register(r'staff-profiles', StaffProfileViewSet, basename='staff-profile')
 router.register(r'patients', PatientViewSet, basename='patient')
@@ -46,6 +48,6 @@ urlpatterns = [
     path('my-profile/', MyProfileView.as_view(), name='my-profile'),
     path('vital-sign-queue/', VitalSignQueueView.as_view(), name='vital-sign-queue'),
     path('consultation-queue/', ConsultationQueueView.as_view(), name='consultation-queue'),
-    path('labtechnician-queue/',LabTechnicianQueueView.as_view(), name='labtechnician-queue'),
+    path('lab-technician-queue/',LabTechnicianQueueView.as_view(), name='lab-technician-queue'),
     path('', include(router.urls)),
 ]

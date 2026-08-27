@@ -18,6 +18,7 @@ import VitalSignsPage from './pages/nurse/VitalSignPage'
 import ConsultationQueuePage from './pages/doctor/ConsultationQueuePage'
 import EncounterExamPage from './pages/doctor/EncounterExamPage'
 import EncounterListPage from './pages/doctor/EncounterListPage'
+import LabTechnicianQueuePage from './pages/technician/LabTechnicianQueuePage'
 
 function App() {
   return (
@@ -39,6 +40,7 @@ function App() {
           <Route path="consultation-queue" element={<ConsultationQueuePage />} />
           <Route path="encounters" element={<EncounterListPage />} />
           <Route path="encounters/:encounterId" element={<EncounterExamPage />} />
+          <Route path="lab-technician-queue" element={<LabTechnicianQueuePage />} />
           <Route path=":moduleId" element={<ModulePage />} />
         </Route>
       </Route>

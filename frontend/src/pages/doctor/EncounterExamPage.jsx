@@ -15,10 +15,11 @@ import {
 } from 'lucide-react'
 
 import { getEncounter, updateEncounter } from '../../api/encounters'
-import { createLabTest, getLabTests } from '../../api/labtests'
+import { getLabTests } from '../../api/labtests'
+import { getPrescriptions } from '../../api/prescriptions'
 import LabOrderModal from '../../components/doctor/LabOrderModal'
+import PrescriptionOrderModal from '../../components/doctor/PrescriptionOrderModal'
 import { formatVietnamDateTime } from '../../utils/dateTime'
-import '../../styles/doctor.css'
 
 function formatVital(value) {
   if (value === null || value === undefined || value === '') {
@@ -56,9 +57,9 @@ export default function EncounterExamPage() {
   const [isSaving, setIsSaving] = useState(false)
   const [errorMessage, setErrorMessage] = useState('')
   const [isLabOrderOpen, setIsLabOrderOpen] = useState(false)
-  const [selectedLabTests, setSelectedLabTests] = useState([])
+  const [isPrescriptionOrderOpen, setIsPrescriptionOrderOpen] = useState(false)
   const [orderedLabTests, setOrderedLabTests] = useState([])
-  const [isSubmittingLabOrder, setIsSubmittingLabOrder] = useState(false)
+  const [prescriptions, setPrescriptions] = useState([])
 
   const [form, setForm] = useState({
     chief_complaint: '',
@@ -70,18 +71,24 @@ export default function EncounterExamPage() {
   useEffect(() => {
     async function loadEncounter() {
       try {
-        const [encounterData, labTestData] = await Promise.all([
+        const [encounterData, labTestData, prescriptionData] = await Promise.all([
           getEncounter(encounterId),
 
           getLabTests({
             encounter: encounterId,
             ordering: '-ordered_at',
           }),
+
+          getPrescriptions({
+            encounter: encounterId,
+            ordering: '-created_at',
+          }),
         ])
 
         setEncounter(encounterData)
 
         setOrderedLabTests(labTestData.results ?? labTestData ?? [],)
+        setPrescriptions(prescriptionData.results ?? prescriptionData ?? [])
         setForm({
           chief_complaint: encounterData.chief_complaint || '',
           diagnosis: encounterData.diagnosis || '',
@@ -154,70 +161,21 @@ export default function EncounterExamPage() {
     return <div className="doctor-page">Không tìm thấy lượt khám.</div>
   }
 
-  const handleToggleLabTest = (test) => {
-    setSelectedLabTests((current) => (
-      current.some((item) => item.id === test.id)
-        ? current.filter((item) => item.id !== test.id)
-        : [...current, test]
-    ))
-  }
-
-  const handleSubmitLabOrder = async (selectedTests) => {
-  if (!selectedTests.length) return
-
-  setIsSubmittingLabOrder(true)
-  setErrorMessage('')
-
-  try {
-    const createdTests = await Promise.all(
-      selectedTests.map((test) =>
-        createLabTest({
-          encounter: encounter.id,
-          test_catalog: test.id,
-        }),
-      ),
-    )
-
+  const handleLabOrderSubmitted = (createdTests) => {
     setOrderedLabTests((current) => [
       ...createdTests,
       ...current,
     ])
-
-    setSelectedLabTests([])
     setIsLabOrderOpen(false)
-  } catch (error) {
-    console.error(error)
-
-    setErrorMessage(
-      error?.message ||
-      'Không thể gửi chỉ định xét nghiệm.',
-    )
-  } finally {
-    setIsSubmittingLabOrder(false)
   }
-}
 
-const displayedLabTests = [
-  ...orderedLabTests.map((item) => ({
-    id: item.test_catalog,
-    name: item.test_catalog_detail?.name,
-    category: item.test_catalog_detail?.category,
-    specimen_type: item.test_catalog_detail?.specimen_type,
-    code: item.test_catalog_detail?.code,
-    ordered: true,
-    labTestId: item.id,
-    status: item.status,
-    status_display: item.status_display,
-  })),
-
-  ...selectedLabTests.filter(
-    (selected) =>
-      !orderedLabTests.some(
-        (ordered) =>
-          ordered.test_catalog === selected.id,
-      ),
-  ),
-]
+  const handlePrescriptionSubmitted = (createdPrescription) => {
+    setPrescriptions((current) => [
+      createdPrescription,
+      ...current,
+    ])
+    setIsPrescriptionOrderOpen(false)
+  }
 
   const visit = encounter.visit_detail
   const vitalSign = encounter.latest_vital_sign
@@ -416,7 +374,11 @@ const displayedLabTests = [
               <MoveUpRight size={15} />
             </button>
 
-            <button type="button" className="exam-action-button">
+            <button
+              type="button"
+              className="exam-action-button"
+              onClick={() => setIsPrescriptionOrderOpen(true)}
+            >
               <span>
                 <Pill size={17} />
                 Kê đơn thuốc
@@ -433,6 +395,19 @@ const displayedLabTests = [
 
                 <button type="button" onClick={() => setIsLabOrderOpen(true)}>
                   Xem phiếu
+                </button>
+              </section>
+            )}
+
+            {prescriptions.length > 0 && (
+              <section className="exam-lab-summary" aria-label="Đơn thuốc đã kê">
+                <div>
+                  <strong>Đã kê đơn thuốc</strong>
+                  <span>{prescriptions.length} đơn thuốc</span>
+                </div>
+
+                <button type="button" onClick={() => setIsPrescriptionOrderOpen(true)}>
+                  Xem đơn
                 </button>
               </section>
             )}
@@ -467,17 +442,22 @@ const displayedLabTests = [
           patientName={visit?.patient_name || 'Bệnh nhân chưa rõ'}
           visitNumber={visit?.visit_number || 'Chưa có mã lượt khám'}
           departmentName={encounter.department_detail?.name || 'Chưa phân khoa'}
-          selectedIds={[
-            ...orderedLabTests.map((item) => item.test_catalog),
-            ...selectedLabTests.map((item) => item.id),
-          ]}
-
-          displayedTests={displayedLabTests}
-          pendingTests={selectedLabTests}
-          isSubmitting={isSubmittingLabOrder}
+          encounterId={encounter.id}
+          orderedLabTests={orderedLabTests}
           onClose={() => setIsLabOrderOpen(false)}
-          onSubmit={handleSubmitLabOrder}
-          onToggleTest={handleToggleLabTest}
+          onSubmitted={handleLabOrderSubmitted}
+        />
+      )}
+
+      {isPrescriptionOrderOpen && (
+        <PrescriptionOrderModal
+          patientName={visit?.patient_name || 'Bệnh nhân chưa rõ'}
+          visitNumber={visit?.visit_number || 'Chưa có mã lượt khám'}
+          departmentName={encounter.department_detail?.name || 'Chưa phân khoa'}
+          encounterId={encounter.id}
+          existingPrescriptions={prescriptions}
+          onClose={() => setIsPrescriptionOrderOpen(false)}
+          onSubmitted={handlePrescriptionSubmitted}
         />
       )}
     </div>

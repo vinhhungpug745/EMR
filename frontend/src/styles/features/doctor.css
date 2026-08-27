@@ -1300,7 +1300,7 @@
 
   display: grid;
   grid-template-columns:
-    minmax(0, 2fr)
+    minmax(0, 1fr)
     minmax(340px, 1fr);
 
   gap: 16px;
@@ -1383,6 +1383,58 @@
    RIGHT: PHIẾU CHỈ ĐỊNH
    ========================= */
 
+.lab-order-slip__controls {
+  flex: 0 0 auto;
+
+  padding: 12px;
+
+  background: white;
+  border-top: 1px solid #e4ebf1;
+}
+
+.lab-order-note {
+  display: grid;
+  gap: 8px;
+}
+
+.lab-order-note span {
+  color: var(--ink-600);
+
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.lab-order-note textarea {
+  width: 100%;
+  min-height: 50px;
+
+  padding: 8px 10px;
+
+  color: var(--ink-900);
+  background: #f8fafc;
+
+  border: 1px solid #cbd5e1;
+  border-radius: 9px;
+
+  font: inherit;
+  font-size: 13px;
+  line-height: 1.5;
+
+  resize: vertical;
+}
+
+.lab-order-note textarea::placeholder {
+  color: var(--ink-400);
+}
+
+.lab-order-note textarea:focus {
+  background: white;
+  border-color: var(--blue-700);
+  outline: 0;
+
+  box-shadow: 0 0 0 3px rgba(57, 122, 171, 0.12);
+}
+
 .lab-order-slip {
   min-height: 0;
 
@@ -1390,7 +1442,8 @@
 
   grid-template-rows:
     auto
-    minmax(0, 1fr);
+    minmax(0, 1fr)
+    auto;
 
   overflow: hidden;
 }
@@ -1616,6 +1669,10 @@
   border-color: #b9d5e8;
 }
 
+.lab-test-option.is-locked {
+  cursor: default;
+}
+
 
 .lab-test-option__check {
   width: 20px;
@@ -1760,6 +1817,177 @@
   cursor: pointer;
 }
 
+.prescription-slip__list {
+  min-height: 0;
+  overflow: auto;
+
+  display: grid;
+  align-content: start;
+  gap: 10px;
+
+  padding: 12px;
+}
+
+.prescription-slip__item {
+  display: grid;
+  gap: 10px;
+
+  padding: 11px 10px;
+
+  background: #fbfdff;
+
+  border: 1px solid #e4ebf1;
+  border-radius: 10px;
+}
+
+.prescription-slip__item--issued {
+  background: #f8fafc;
+}
+
+.prescription-slip__item header {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 30px;
+  gap: 10px;
+  align-items: start;
+}
+
+.prescription-slip__item header div {
+  min-width: 0;
+
+  display: grid;
+  gap: 4px;
+}
+
+.prescription-slip__item strong {
+  color: var(--ink-900);
+
+  font-size: 13px;
+}
+
+.prescription-slip__item span {
+  color: var(--ink-500);
+
+  font-size: 11px;
+  line-height: 1.35;
+}
+
+.prescription-slip__status {
+  width: fit-content;
+
+  padding: 3px 7px;
+
+  color: #0f6b84;
+  background: #e7f7fb;
+
+  border: 1px solid #bae6fd;
+  border-radius: 999px;
+
+  font-size: 11px;
+  font-style: normal;
+  font-weight: 800;
+}
+
+.prescription-slip__item button {
+  width: 30px;
+  height: 30px;
+
+  display: grid;
+  place-items: center;
+
+  color: #b91c1c;
+  background: #fff1f2;
+
+  border: 1px solid #fecdd3;
+  border-radius: 8px;
+
+  cursor: pointer;
+}
+
+.prescription-fields {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 9px;
+}
+
+.prescription-fields label {
+  display: grid;
+  gap: 5px;
+}
+
+.prescription-fields span {
+  color: var(--ink-600);
+
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.prescription-fields input {
+  width: 100%;
+
+  padding: 8px 9px;
+
+  color: var(--ink-900);
+  background: white;
+
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+
+  font: inherit;
+  font-size: 12px;
+}
+
+.prescription-fields input:focus {
+  border-color: var(--blue-700);
+  outline: 0;
+
+  box-shadow: 0 0 0 3px rgba(57, 122, 171, 0.12);
+}
+
+.prescription-fields__wide {
+  grid-column: 1 / -1;
+}
+
+.prescription-slip__summary {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+
+  margin: 0;
+}
+
+.prescription-slip__summary div {
+  display: grid;
+  gap: 3px;
+
+  padding: 7px 8px;
+
+  background: white;
+
+  border: 1px solid #e4ebf1;
+  border-radius: 8px;
+}
+
+.prescription-slip__summary-wide {
+  grid-column: 1 / -1;
+}
+
+.prescription-slip__summary dt {
+  color: var(--ink-500);
+
+  font-size: 10px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.prescription-slip__summary dd {
+  margin: 0;
+
+  color: var(--ink-900);
+
+  font-size: 12px;
+  line-height: 1.35;
+}
+
 
 /* =========================
    EMPTY
@@ -1804,6 +2032,7 @@
 
 .lab-order-modal__footer {
   display: flex;
+  align-items: center;
   justify-content: flex-end;
   gap: 10px;
 
@@ -1814,6 +2043,14 @@
   border-top: 1px solid var(--border);
 }
 
+.lab-order-submit-error {
+  margin-right: auto;
+
+  color: #991b1b;
+
+  font-size: 12px;
+  font-weight: 700;
+}
 
 .lab-order-modal__footer .exam-save-button,
 .lab-order-modal__footer .exam-complete-button {
@@ -1942,6 +2179,10 @@
     grid-template-columns:
       24px
       minmax(0, 1fr);
+  }
+
+  .prescription-fields {
+    grid-template-columns: 1fr;
   }
 
   .lab-order-modal__footer .exam-save-button,

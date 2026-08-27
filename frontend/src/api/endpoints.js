@@ -15,6 +15,8 @@ export const endpoints = {
 
   medications: '/medications/',
   medicationDetail: (id) => `/medications/${id}/`,
+  prescriptions: '/prescriptions/',
+  prescriptionDetail: (id) => `/prescriptions/${id}/`,
 
   labTestCatalogs: '/lab-test-catalogs/',
   labTestCatalogDetail: (id) => `/lab-test-catalogs/${id}/`,
@@ -39,5 +41,5 @@ export const endpoints = {
   
   vitalSignQueue: '/vital-sign-queue/',
   consultationQueue: '/consultation-queue/',
-  labtechnicianQueue: '/labtechnician-queue/',
+  labtechnicianQueue: '/lab-technician-queue/',
 }

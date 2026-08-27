@@ -7,7 +7,6 @@ import VitalSignDetailModal from '../../components/nurse/VitalSignDetailModal'
 import VitalSignTable from '../../components/nurse/VitalSignTable'
 import { usePaginatedResource } from '../../utils/usePaginatedResource'
 
-import '../../styles/nurse.css'
 
 const PAGE_SIZE = 8
 

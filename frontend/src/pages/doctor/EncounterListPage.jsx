@@ -8,7 +8,6 @@ import { PaginationFooter } from '../../components/common/PaginationFooter'
 import { formatVietnamTime } from '../../utils/dateTime'
 import { usePaginatedResource } from '../../utils/usePaginatedResource'
 
-import '../../styles/doctor.css'
 
 const PAGE_SIZE = 8
 

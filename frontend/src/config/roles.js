@@ -88,13 +88,13 @@ export const ROLE_CONFIG = {
       { id: 'consultation-queue', label: 'Hàng đợi khám', path: '/app/consultation-queue', icon: ListChecks },
       { id: 'encounters', label: 'Thực hiện khám bệnh', path: '/app/encounters', icon: Stethoscope  },
       { id: 'medical-records', label: 'Hồ sơ bệnh án', path: '/app/medical-records', icon: BookOpenText },
-      { id: 'lab-tests', label: 'Xét nghiệm', path: '/app/lab-tests', icon: FlaskConical },
-      { id: 'prescriptions', label: 'Đơn thuốc', path: '/app/prescriptions', icon: Pill },
+      // { id: 'lab-tests', label: 'Xét nghiệm', path: '/app/lab-tests', icon: FlaskConical },
+      // { id: 'prescriptions', label: 'Đơn thuốc', path: '/app/prescriptions', icon: Pill },
     ],
     focus: [
       { label: 'Bệnh nhân chờ khám', value: 'Mở hàng đợi', icon: Stethoscope },
+      { label: 'Lượt khám đang thực hiện', value: 'Cập nhật', icon: Stethoscope },
       { label: 'Hồ sơ bệnh án', value: 'Tra cứu', icon: BookOpenText },
-      { label: 'Đơn thuốc gần đây', value: 'Theo dõi', icon: Pill },
     ],
   },
   lab_technician: {
@@ -103,7 +103,7 @@ export const ROLE_CONFIG = {
     description: 'Tiếp nhận mẫu, cập nhật tiến độ và trả kết quả lâm sàng.',
     nav: [
       sharedDashboard,
-      { id: 'new-orders', label: 'Chỉ định mới', path: '/app/new-orders', icon: Beaker },
+      { id: 'lab-technician-queue', label: 'Chỉ định mới', path: '/app/lab-technician-queue', icon: Beaker },
       { id: 'lab-progress', label: 'Đang thực hiện', path: '/app/lab-progress', icon: FlaskConical },
       { id: 'lab-results', label: 'Đã có kết quả', path: '/app/lab-results', icon: FileText },
     ],

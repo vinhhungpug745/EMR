@@ -9,6 +9,7 @@ import {
   X,
 } from 'lucide-react'
 
+import { createLabTest } from '../../api/labtests'
 import { getLabTestCatalogs } from '../../api/labTestCatalogs'
 import { PaginationFooter } from '../common/PaginationFooter'
 import { usePaginatedResource } from '../../utils/usePaginatedResource'
@@ -16,26 +17,22 @@ import { usePaginatedResource } from '../../utils/usePaginatedResource'
 const ALL_UNITS = 'Tất cả'
 const PAGE_SIZE = 8
 
-function getAssignee(category) {
-  return category ? `Nhóm ${category}` : 'Nhóm xét nghiệm'
-}
-
 export default function LabOrderModal({
   patientName,
   visitNumber,
   departmentName,
-  selectedIds,
-  displayedTests,
-  pendingTests,
-  isSubmitting,
+  encounterId,
+  orderedLabTests,
   onClose,
-  onSubmit,
-  onToggleTest,
+  onSubmitted,
 }) {
   const [activeUnit, setActiveUnit] = useState(ALL_UNITS)
   const [searchTerm, setSearchTerm] = useState('')
-  
-   const fetchLabTests = useCallback(
+  const [pendingTests, setPendingTests] = useState([])
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [submitErrorMessage, setSubmitErrorMessage] = useState('')
+
+  const fetchLabTests = useCallback(
     ({ page, pageSize }) =>
       getLabTestCatalogs({
         activeOnly: true,
@@ -84,6 +81,72 @@ export default function LabOrderModal({
     setSearchTerm(event.target.value)
   }
 
+  function handleToggleTest(test) {
+    if (orderedLabTests.some((item) => item.test_catalog === test.id)) {
+      return
+    }
+
+    setPendingTests((current) => (
+      current.some((item) => item.id === test.id)
+        ? current.filter((item) => item.id !== test.id)
+        : [...current, test]
+    ))
+  }
+
+  async function handleSubmitLabOrder() {
+    if (!pendingTests.length) return
+
+    setIsSubmitting(true)
+    setSubmitErrorMessage('')
+
+    try {
+      const createdTests = await Promise.all(
+        pendingTests.map((test) =>
+          createLabTest({
+            encounter: encounterId,
+            test_catalog: test.id,
+          }),
+        ),
+      )
+
+      setPendingTests([])
+      onSubmitted(createdTests)
+    } catch (error) {
+      console.error(error)
+      setSubmitErrorMessage(
+        error?.message || 'Không thể gửi chỉ định xét nghiệm.',
+      )
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  const selectedIds = [
+    ...orderedLabTests.map((item) => item.test_catalog),
+    ...pendingTests.map((item) => item.id),
+  ]
+
+  const displayedTests = [
+    ...orderedLabTests.map((item) => ({
+      id: item.test_catalog,
+      name: item.test_catalog_detail?.name,
+      category: item.test_catalog_detail?.category,
+      specimen_type: item.test_catalog_detail?.specimen_type,
+      code: item.test_catalog_detail?.code,
+      ordered: true,
+      labTestId: item.id,
+      status: item.status,
+      status_display: item.status_display,
+    })),
+
+    ...pendingTests.filter(
+      (selected) =>
+        !orderedLabTests.some(
+          (ordered) => ordered.test_catalog === selected.id,
+        ),
+    ),
+  ]
+
   return (
     <div className="lab-order-backdrop" role="presentation" onMouseDown={onClose}>
       <section
@@ -124,13 +187,38 @@ export default function LabOrderModal({
                   placeholder="Tìm theo tên, mã, mẫu bệnh phẩm..."
                 />
               </label>
+
+              <div className="lab-order-filter">
+                <span>Nhóm xét nghiệm</span>
+                <div className="lab-order-tabs" aria-label="Nhóm xét nghiệm">
+                  {units.map((unit) => (
+                    <button
+                      key={unit}
+                      type="button"
+                      className={activeUnit === unit ? 'is-active' : ''}
+                      onClick={() => setActiveUnit(unit)}
+                    >
+                      {unit}
+                    </button>
+                  ))}
+                </div>
+              </div>
             </div>
 
             <div className="lab-test-list">
               {isLoading && (
                 <div className="lab-order-state">Đang tải danh mục xét nghiệm...</div>
               )}
-             
+
+              {!isLoading && errorMessage && (
+                <div className="lab-order-state lab-order-state--error">
+                  <span>{errorMessage}</span>
+                  <button type="button" onClick={loadLabTests}>
+                    <RefreshCw size={15} />
+                    Tải lại
+                  </button>
+                </div>
+              )}
 
               {!isLoading && !errorMessage && !filteredTests.length && (
                 <div className="lab-order-state">Không có xét nghiệm phù hợp.</div>
@@ -145,7 +233,7 @@ export default function LabOrderModal({
                     key={test.id}
                     type="button"
                     className={`lab-test-option${isSelected ? ' is-selected' : ''}`}
-                    onClick={() => onToggleTest(test)}
+                    onClick={() => handleToggleTest(test)}
                   >
                     <span className="lab-test-option__check">
                       {isSelected && <CheckCircle2 size={15} />}
@@ -213,7 +301,7 @@ export default function LabOrderModal({
                         <button
                           type="button"
                           aria-label={`Bỏ ${test.name}`}
-                          onClick={() => onToggleTest(test)}
+                          onClick={() => handleToggleTest(test)}
                         >
                           <Trash2 size={15} />
                         </button>
@@ -235,13 +323,19 @@ export default function LabOrderModal({
         </div>
 
         <footer className="lab-order-modal__footer">
+          {submitErrorMessage && (
+            <div className="lab-order-submit-error">
+              {submitErrorMessage}
+            </div>
+          )}
+
           <button type="button" className="exam-save-button" onClick={onClose}>
             Hủy
           </button>
           <button
               type="button"
               className="exam-complete-button"
-              onClick={() => onSubmit(pendingTests)}
+              onClick={handleSubmitLabOrder}
               disabled={
                 !pendingTests.length ||
                 isSubmitting

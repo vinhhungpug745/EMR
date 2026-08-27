@@ -20,7 +20,6 @@ import {Snackbar} from "../../components/common/Snackbar"
 import { usePaginatedResource } from '../../utils/usePaginatedResource'
 import { useSnackbar } from '../../utils/useSnackbar'
 
-import '../../styles/nurse.css'
 
 const PAGE_SIZE = 8
 

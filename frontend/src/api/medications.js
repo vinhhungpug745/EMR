@@ -1,11 +1,12 @@
 import { apiRequest } from './http'
 import { endpoints } from './endpoints'
 
-export function getMedications({
+export async function getMedications({
   search = '',
   ordering = 'name',
   page = 1,
   pageSize = 8,
+  activeOnly = false,
 } = {}) {
   const params = new URLSearchParams()
 
@@ -14,7 +15,20 @@ export function getMedications({
   params.set('page', page)
   params.set('page_size', pageSize)
 
-  return apiRequest(`${endpoints.medications}?${params.toString()}`)
+  const data = await apiRequest(`${endpoints.medications}?${params.toString()}`)
+
+  if (!activeOnly) return data
+
+  const results = Array.isArray(data) ? data : data.results || []
+
+  if (Array.isArray(data)) {
+    return results.filter((medication) => medication.active)
+  }
+
+  return {
+    ...data,
+    results: results.filter((medication) => medication.active),
+  }
 }
 
 export function createMedication(data) {

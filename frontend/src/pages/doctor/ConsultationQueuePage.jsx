@@ -13,7 +13,6 @@ import { PaginationFooter } from '../../components/common/PaginationFooter'
 import ConsultationQueueTable from '../../components/doctor/ConsultationQueueTable'
 import { usePaginatedResource } from '../../utils/usePaginatedResource'
 
-import '../../styles/doctor.css'
 
 const PAGE_SIZE = 8
 
