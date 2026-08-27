@@ -119,6 +119,10 @@
 
 .workspace {
   min-width: 0;
+  min-height: 100dvh;
+
+  display: grid;
+  grid-template-rows: auto 1fr auto;
 }
 
 .topbar {
@@ -186,6 +190,26 @@
   display: none;
 }
 
+.workspace__footer {
+  width: min(100%, 1480px);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 0 auto;
+  padding: 13px clamp(18px, 3vw, 34px);
+  color: var(--ink-500);
+  background:linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(248, 252, 255, 0.96));
+  box-shadow: 0 7px 22px rgba(35, 71, 104, 0.05);
+  font-size: 12px;
+}
+
+.workspace__footer-brand {
+  color: var(--blue-800);
+
+  font-weight: 800;
+}
+
 @media (max-width: 1024px) {
   .app-shell {
     grid-template-columns: 1fr;
@@ -243,5 +267,13 @@
 
   .workspace__content {
     padding: 24px 16px 36px;
+  }
+
+  .workspace__footer {
+    flex-direction: column;
+    align-items: flex-start;
+
+    margin: 0 auto;
+    padding: 12px 14px;
   }
 }

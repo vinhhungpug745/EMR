@@ -101,6 +101,12 @@ export function AppShell() {
         <main className="workspace__content">
           <Outlet />
         </main>
+
+        <footer className="workspace__footer">
+          <span className="workspace__footer-brand">EMR Care</span>
+          <span>Hồ sơ bệnh án điện tử</span>
+          <span>Copyright © 2026</span>
+        </footer>
       </section>
     </div>
   )
