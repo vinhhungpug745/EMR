@@ -1,6 +1,8 @@
 from django.urls import include, path
 from rest_framework.routers import DefaultRouter
 from rest_framework_simplejwt.views import TokenRefreshView, TokenVerifyView
+from .views.report import OutpatientReportView
+from .views.audit_log import AuditLogViewSet
 
 from .views import (
     CurrentUserView,
@@ -25,6 +27,7 @@ from .views import (
 )
 
 router = DefaultRouter()
+router.register(r'audit-logs', AuditLogViewSet, basename='audit-log')
 router.register(r'departments', DepartmentViewSet, basename='department')
 router.register(r'medications', MedicationViewSet, basename='medication')
 router.register(r'medical-records', MedicalRecordViewSet, basename='medical-record')
@@ -40,6 +43,7 @@ router.register(r'vital-signs', VitalSignViewSet, basename='vital-sign')
 
 
 urlpatterns = [
+    path('reports/outpatient/', OutpatientReportView.as_view(), name='outpatient-report'),
     path('auth/login/', LoginView.as_view(), name='auth-login'),
     path('auth/refresh/', TokenRefreshView.as_view(), name='auth-refresh'),
     path('auth/verify/', TokenVerifyView.as_view(), name='auth-verify'),

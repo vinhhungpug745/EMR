@@ -56,11 +56,7 @@ export function ReceptionCheckInForm({
 
           <label className="user-form__field">
             <span>Loại khám</span>
-            <select name="visit_type" value={form.visit_type} onChange={onChange}>
-              <option value="outpatient">Ngoại trú</option>
-              <option value="inpatient">Nội trú</option>
-              <option value="emergency">Cấp cứu</option>
-            </select>
+            <input value="Khám ngoại trú" readOnly />
           </label>
 
           <label className="user-form__field">

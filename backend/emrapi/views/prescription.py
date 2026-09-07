@@ -3,13 +3,12 @@ from rest_framework import filters, viewsets
 from rest_framework.exceptions import PermissionDenied, ValidationError
 
 from emrapi.models import Encounter, Prescription, StaffProfile
-from emrapi.permission import IsAnyStaff
+from emrapi.permission import IsDoctor, IsDoctorOrAdmin
 from emrapi.serializers import PrescriptionSerializer
 
 
 class PrescriptionViewSet(viewsets.ModelViewSet):
     serializer_class = PrescriptionSerializer
-    permission_classes = [IsAnyStaff]
     filter_backends = [filters.SearchFilter, filters.OrderingFilter]
     search_fields = [
         'encounter__visit__visit_number',
@@ -22,6 +21,10 @@ class PrescriptionViewSet(viewsets.ModelViewSet):
     ordering_fields = ['created_at', 'updated_at', 'status']
     ordering = ['-created_at']
     http_method_names = ['get', 'post', 'patch', 'head', 'options']
+
+    def get_permissions(self):
+        permission_classes = [IsDoctor] if self.action == 'create' else [IsDoctorOrAdmin]
+        return [permission() for permission in permission_classes]
 
     queryset = (
         Prescription.objects

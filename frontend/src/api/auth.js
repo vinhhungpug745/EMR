@@ -1,5 +1,7 @@
-import { apiRequest, REFRESH_TOKEN_KEY } from './http'
+import { apiRequest, ACCESS_TOKEN_KEY, REFRESH_TOKEN_KEY } from './http'
 import { endpoints } from './endpoints'
+
+let currentUserRequest = null
 
 export function loginRequest(credentials) {
   return apiRequest(endpoints.authLogin, {
@@ -9,7 +11,19 @@ export function loginRequest(credentials) {
 }
 
 export function getCurrentUser() {
-  return apiRequest(endpoints.authMe)
+  // StrictMode replays the startup effect in development. Share only an
+  // in-flight request for the same session; do not cache the user's profile.
+  const sessionKey = JSON.stringify([
+    localStorage.getItem(ACCESS_TOKEN_KEY),
+    localStorage.getItem(REFRESH_TOKEN_KEY),
+  ])
+  if (currentUserRequest?.sessionKey === sessionKey) return currentUserRequest.promise
+
+  const promise = apiRequest(endpoints.authMe).finally(() => {
+    if (currentUserRequest?.promise === promise) currentUserRequest = null
+  })
+  currentUserRequest = { sessionKey, promise }
+  return promise
 }
 
 export function logoutRequest() {

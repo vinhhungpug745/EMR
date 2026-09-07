@@ -15,3 +15,5 @@
 @import './features/nurse.css';
 @import './features/doctor.css';
 @import './features/technician.css';
+@import './features/reports.css';
+@import './features/audit-logs.css';

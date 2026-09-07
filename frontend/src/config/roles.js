@@ -1,5 +1,6 @@
 import {
   Activity,
+  BarChart3,
   Beaker,
   BookOpenText,
   Building2,
@@ -27,7 +28,7 @@ export const ROLE_CONFIG = {
   admin: {
     label: 'Quản trị viên',
     greeting: 'Quản trị và vận hành hệ thống',
-    description: 'Theo dõi tài khoản, nhân sự và các danh mục dùng chung.',
+    description: 'Quản lý tài khoản, nhân sự, danh mục và báo cáo khám ngoại trú.',
     nav: [
       sharedDashboard,
       { id: 'users', label: 'Tài khoản', path: '/app/users', icon: Users },
@@ -36,6 +37,7 @@ export const ROLE_CONFIG = {
       { id: 'medications', label: 'Danh mục thuốc', path: '/app/medications', icon: Pill },
       { id: 'lab-test-catalogs', label: 'Danh mục xét nghiệm', path: '/app/lab-test-catalogs', icon: FlaskConical },
       { id: 'audit-logs', label: 'Nhật ký hệ thống', path: '/app/audit-logs', icon: FileClock },
+      { id: 'reports', label: 'Thống kê, báo cáo', path: '/app/reports', icon: BarChart3 },
     ],
     focus: [
       { label: 'Tài khoản người dùng', value: 'Quản lý', icon: Users },
@@ -44,6 +46,7 @@ export const ROLE_CONFIG = {
       { label: 'Danh mục thuốc', value: 'Theo dõi', icon: Pill },
       { label: 'Danh mục xét nghiệm', value: 'Cập nhật', icon: FlaskConical },
       { label: 'Nhật ký truy cập', value: 'Kiểm tra', icon: FileClock },
+      { label: 'Thống kê khám ngoại trú', value: 'Xem báo cáo', icon: BarChart3 },
     ],
   },
   receptionist: {
@@ -55,12 +58,11 @@ export const ROLE_CONFIG = {
       { id: 'reception', label: 'Tiếp nhận', path: '/app/reception', icon: ClipboardList },
       { id: 'visits', label: 'Lần đến khám', path: '/app/visits', icon: CalendarDays },
       { id: 'patients', label: 'Bệnh nhân', path: '/app/patients', icon: Users },
-      { id: 'queue', label: 'Hàng đợi khám', path: '/app/queue', icon: ListChecks },
     ],
     focus: [
-      { label: 'Lần đến hôm nay', value: 'Mở danh sách', icon: CalendarDays },
-      { label: 'Tiếp nhận trực tiếp', value: 'Tạo lượt khám', icon: ClipboardList },
-      { label: 'Hàng đợi hiện tại', value: 'Điều phối', icon: ListChecks },
+      { label: 'Tiếp nhận', value: 'Tạo lượt khám', icon: ClipboardList },
+      { label: 'Lần đến', value: 'Mở danh sách', icon: CalendarDays },
+      { label: 'Quản lý', value: 'Bệnh nhân', icon: Users },
     ],
   },
   nurse: {
@@ -71,12 +73,10 @@ export const ROLE_CONFIG = {
       sharedDashboard,
       { id: 'vital-sign-queue', label: 'Chờ đo sinh hiệu', path: '/app/vital-sign-queue', icon: ListChecks },
       { id: 'vital-signs', label: 'Sinh hiệu', path: '/app/vital-signs', icon: Activity },
-      { id: 'care-history', label: 'Lịch sử chăm sóc', path: '/app/care-history', icon: FileText },
     ],
     focus: [
       { label: 'Chờ đo sinh hiệu', value: 'Mở hàng đợi', icon: ListChecks },
       { label: 'Phiếu sinh hiệu', value: 'Cập nhật', icon: Activity },
-      { label: 'Lịch sử chăm sóc', value: 'Tra cứu', icon: FileText },
     ],
   },
   doctor: {

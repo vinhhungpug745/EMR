@@ -814,11 +814,7 @@ def seed_visits_and_encounters(
                 medical_record=record,
                 arrived_at=visit_at,
                 defaults={
-                    'visit_type': (
-                        Visit.VisitType.EMERGENCY
-                        if patient_index % 13 == 0
-                        else Visit.VisitType.OUTPATIENT
-                    ),
+                    'visit_type': Visit.VisitType.OUTPATIENT,
                     'reason': case['reason'],
                     'status': encounter_status,
                     'completed_at': visit_at + timedelta(hours=1) if is_completed else None,

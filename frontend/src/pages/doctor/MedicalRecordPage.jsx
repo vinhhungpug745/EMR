@@ -24,7 +24,7 @@ import { usePaginatedResource } from '../../utils/usePaginatedResource'
 import { useSnackbar } from '../../utils/useSnackbar'
 
 const PAGE_SIZE = 8
-const ALLOWED_ROLES = ['admin', 'doctor', 'receptionist']
+const ALLOWED_ROLES = ['admin', 'doctor']
 
 export default function MedicalRecordPage() {
   const { user } = useAuth()

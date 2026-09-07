@@ -16,6 +16,10 @@ export function LabTechnicianQueueModal({
     return null
   }
 
+  const isOrdered = order.status === 'ordered'
+  const isProcessing = order.status === 'processing'
+  const isCompleted = order.status === 'completed'
+
   return (
     <section
       className="lab-order-backdrop technician-modal-backdrop"
@@ -86,10 +90,10 @@ export function LabTechnicianQueueModal({
               <div>
                 <span className="doctor-page__eyebrow">
                   <FileText size={15} />
-                  Nhập kết quả
+                  {isCompleted ? 'Kết quả đã trả' : isProcessing ? 'Nhập kết quả' : 'Chưa tiếp nhận'}
                 </span>
 
-                <h3>Kết quả xét nghiệm</h3>
+                <h3>{isOrdered ? 'Chờ tiếp nhận chỉ định' : 'Kết quả xét nghiệm'}</h3>
               </div>
 
               <span className={`technician-status-pill technician-status-pill--${order.status}`}>
@@ -97,18 +101,27 @@ export function LabTechnicianQueueModal({
               </span>
             </div>
 
-            <label className="technician-result-field">
-              <span>Nội dung kết quả</span>
+            {isOrdered && (
+              <div className="technician-result-note">
+                Tiếp nhận chỉ định trước khi nhập kết quả xét nghiệm.
+              </div>
+            )}
 
-              <textarea
-                rows={8}
-                value={result}
-                onChange={(event) =>
-                  onResultChange(event.target.value)
-                }
-                placeholder="Nhập kết quả xét nghiệm..."
-              />
-            </label>
+            {!isOrdered && (
+              <label className="technician-result-field">
+                <span>Nội dung kết quả</span>
+
+                <textarea
+                  rows={8}
+                  value={result}
+                  readOnly={isCompleted}
+                  onChange={(event) =>
+                    onResultChange(event.target.value)
+                  }
+                  placeholder="Nhập kết quả xét nghiệm..."
+                />
+              </label>
+            )}
 
             {errorMessage && (
               <div className="lab-order-submit-error technician-modal__error">
@@ -119,11 +132,7 @@ export function LabTechnicianQueueModal({
         </div>
 
         <footer className="lab-order-modal__footer">
-          <button
-            type="button"
-            className="exam-save-button"
-            onClick={onClose}
-          >
+          <button type="button" className="exam-save-button" onClick={onClose}>
             Đóng
           </button>
 
@@ -138,15 +147,17 @@ export function LabTechnicianQueueModal({
             </button>
           )}
 
-          <button
-            type="button"
-            className="exam-complete-button"
-            disabled={isSaving}
-            onClick={onComplete}
-          >
-            <CheckCircle2 size={16} />
-            Hoàn tất
-          </button>
+          {isProcessing && (
+            <button
+              type="button"
+              className="exam-complete-button"
+              disabled={isSaving}
+              onClick={onComplete}
+            >
+              <CheckCircle2 size={16} />
+              Hoàn tất
+            </button>
+          )}
         </footer>
       </div>
     </section>

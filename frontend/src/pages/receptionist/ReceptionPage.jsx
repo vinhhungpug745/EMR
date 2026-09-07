@@ -136,7 +136,7 @@ export default function ReceptionPage() {
     try {
       const visit = await createVisit({
         medical_record: selectedPatient.medical_record_id,
-        visit_type: form.visit_type,
+        visit_type: 'outpatient',
         arrived_at: form.arrived_at,
         reason: form.reason.trim(),
         note: form.note.trim() || null,

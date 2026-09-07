@@ -1,0 +1,23 @@
+.reports-page { gap: 20px; }
+.reports-page h1 { margin-bottom: 6px; }
+.reports-page h2 { font-size: 18px; margin: 0 0 8px; }
+.reports-page p { margin: 0; color: var(--ink-700); line-height: 1.6; }
+.reports-filters { display: flex; align-items: end; flex-wrap: wrap; gap: 16px; padding: 20px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-md); }
+.reports-filters .user-form__field { min-width: 190px; }
+.reports-metrics { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; }
+.reports-metric { display: flex; flex-direction: column; gap: 12px; padding: 22px; border: 1px solid var(--border); border-radius: var(--radius-md); background: var(--surface); }
+.reports-metric > strong { font-size: 32px; color: var(--blue-800); font-variant-numeric: tabular-nums; }
+.reports-metric small { color: var(--ink-700); line-height: 1.5; }
+.reports-note, .reports-period { font-size: 14px; }
+.reports-departments > header { padding: 22px; border-bottom: 1px solid var(--border); }
+.reports-departments > header p { font-size: 14px; }
+.reports-table-scroll { overflow-x: auto; }
+.reports-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+.reports-table th, .reports-table td { padding: 17px 20px; border-bottom: 1px solid var(--border); text-align: right; font-variant-numeric: tabular-nums; }
+.reports-table thead th { background: var(--surface-subtle); color: var(--ink-700); white-space: nowrap; }
+.reports-table th:first-child { text-align: left; min-width: 200px; }
+.reports-table tbody tr:last-child > * { border-bottom: 0; }
+.reports-bar { display: block; height: 5px; margin-top: 10px; background: var(--blue-50); border-radius: 4px; }
+.reports-bar > span { display: block; height: 100%; background: var(--blue-600); border-radius: inherit; }
+@media (max-width: 1100px) { .reports-metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 600px) { .reports-metrics { grid-template-columns: 1fr; } .reports-filters > * { width: 100%; } }

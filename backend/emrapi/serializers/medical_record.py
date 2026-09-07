@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from emrapi.models import MedicalRecord
+from emrapi.models import MedicalRecord, Prescription
 
 from .base import ModelCleanSerializer
 from .patient import PatientSummarySerializer
@@ -154,7 +154,11 @@ class MedicalRecordSerializer(ModelCleanSerializer):
     def _serialize_encounter(self, encounter):
         vital_signs = encounter.vital_signs.all().order_by('-created_at')
         lab_tests = encounter.lab_tests.all().order_by('-ordered_at')
-        prescriptions = encounter.prescriptions.all().order_by('-created_at')
+        prescriptions = (
+            encounter.prescriptions
+            .exclude(status=Prescription.Status.CANCELLED)
+            .order_by('-created_at')
+        )
 
         return {
             'id': encounter.id,

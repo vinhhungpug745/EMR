@@ -2,7 +2,7 @@ from django.db.models import Prefetch
 from rest_framework import filters, viewsets
 
 from emrapi.models import Encounter, LabTest, MedicalRecord, Prescription, Visit
-from emrapi.permission import IsAnyStaff
+from emrapi.permission import IsDoctorOrAdmin
 from emrapi.serializers import MedicalRecordSerializer, MedicalRecordSummarySerializer
 
 
@@ -16,7 +16,7 @@ class MedicalRecordViewSet(viewsets.ModelViewSet):
             'created_by__user',
         )
     )
-    permission_classes = [IsAnyStaff]
+    permission_classes = [IsDoctorOrAdmin]
     filter_backends = [filters.SearchFilter, filters.OrderingFilter]
     search_fields = [
         'record_number',
@@ -54,6 +54,7 @@ class MedicalRecordViewSet(viewsets.ModelViewSet):
 
         prescription_queryset = (
             Prescription.objects
+            .exclude(status=Prescription.Status.CANCELLED)
             .prefetch_related('items', 'items__medication')
         )
         lab_test_queryset = LabTest.objects.select_related('test_catalog')

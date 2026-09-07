@@ -3,6 +3,10 @@ import { formatVietnamDateTime } from '../../utils/dateTime'
 export function LabTechnicianQueueTable({
   orders,
   isLoading,
+  emptyTitle = 'Không có chỉ định đang chờ',
+  emptyDescription = 'Danh sách sẽ tự cập nhật khi bác sĩ gửi chỉ định mới.',
+  timeLabel = 'Thời điểm',
+  timeField = 'ordered_at',
   onSelectOrder,
 }) {
   if (isLoading) {
@@ -33,7 +37,7 @@ export function LabTechnicianQueueTable({
             <th>Xét nghiệm</th>
             <th>Loại</th>
             <th>Bác sĩ chỉ định</th>
-            <th>Thời điểm</th>
+            <th>{timeLabel}</th>
           </tr>
         </thead>
 
@@ -93,16 +97,18 @@ export function LabTechnicianQueueTable({
               </td>
 
               <td className="technician-time-cell">
-                {formatVietnamDateTime(order.ordered_at)}
+                {formatVietnamDateTime(order[timeField] || order.ordered_at)}
               </td>
             </tr>
           ))}
 
           {!orders.length && (
             <tr>
-              <td colSpan={6} className="users-table__empty">
-                <strong>Không có chỉ định đang chờ</strong>
-                <span>Danh sách sẽ tự cập nhật khi bác sĩ gửi chỉ định mới.</span>
+              <td colSpan={6}>
+                <div className="technician-table-empty">
+                  <strong>{emptyTitle}</strong>
+                  <span>{emptyDescription}</span>
+                </div>
               </td>
             </tr>
           )}

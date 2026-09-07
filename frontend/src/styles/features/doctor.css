@@ -2059,6 +2059,69 @@
   margin: 0;
 }
 
+.specialty-transfer-modal {
+  width: min(720px, 100%);
+  height: auto;
+  max-height: calc(100dvh - 40px);
+}
+
+.specialty-transfer-form {
+  min-height: 0;
+  display: grid;
+  grid-template-rows: minmax(0, 1fr) auto;
+  overflow: hidden;
+}
+
+.specialty-transfer-card {
+  display: grid;
+  gap: 16px;
+  padding: 18px 20px;
+  overflow: auto;
+}
+
+.specialty-transfer-field {
+  display: grid;
+  gap: 8px;
+}
+
+.specialty-transfer-field > span {
+  color: var(--ink-600);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.specialty-transfer-field select,
+.specialty-transfer-field textarea {
+  width: 100%;
+  padding: 0 12px;
+  color: var(--ink-900);
+  background: #f8fafc;
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+  font: inherit;
+  font-size: 13px;
+}
+
+.specialty-transfer-field select {
+  min-height: 42px;
+}
+
+.specialty-transfer-field textarea {
+  min-height: 170px;
+  padding-top: 12px;
+  padding-bottom: 12px;
+  line-height: 1.55;
+  resize: vertical;
+}
+
+.specialty-transfer-field select:focus,
+.specialty-transfer-field textarea:focus {
+  background: white;
+  border-color: var(--blue-700);
+  outline: 0;
+  box-shadow: 0 0 0 3px rgba(57, 122, 171, 0.12);
+}
+
 
 /* =========================
    RESPONSIVE

@@ -42,7 +42,7 @@ export default function ConsultationQueueCard({
   onStart,
   isStarting = false,
 }) {
-  const vitalSign = encounter.latest_vital_sign
+  const vitalSign = encounter?.latest_vital_sign
 
   const bloodPressure =
     vitalSign?.systolic_bp &&

@@ -8,7 +8,10 @@ from emrapi.serializers import (
 )
 
 
-class LabTestCatalogViewSet(viewsets.ModelViewSet):
+from emrapi.audit import AuditTrailMixin
+
+
+class LabTestCatalogViewSet(AuditTrailMixin, viewsets.ModelViewSet):
     queryset = LabTestCatalog.objects.all()
     filter_backends = [filters.SearchFilter, filters.OrderingFilter]
     search_fields = ['code', 'name', 'category', 'specimen_type']

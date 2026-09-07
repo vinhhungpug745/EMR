@@ -31,7 +31,10 @@ SECRET_KEY = os.getenv('SECRET_KEY')
 
 ALLOWED_HOSTS = [
     'localhost',
-    '192.168.1.73',
+    '127.0.0.1',
+    '192.168.1.7',
+    'emr-care.site',
+    'api.emr-care.site',
 ]
 
 

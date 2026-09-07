@@ -14,12 +14,15 @@ import {
   UserRound,
 } from 'lucide-react'
 
-import { getEncounter, updateEncounter } from '../../api/encounters'
+import { getEncounter, transferEncounterSpecialty, updateEncounter } from '../../api/encounters'
 import { getLabTests } from '../../api/labtests'
 import { getPrescriptions } from '../../api/prescriptions'
+import { Snackbar } from '../../components/common/Snackbar'
 import LabOrderModal from '../../components/doctor/LabOrderModal'
 import PrescriptionOrderModal from '../../components/doctor/PrescriptionOrderModal'
+import SpecialtyTransferModal from '../../components/doctor/SpecialtyTransferModal'
 import { formatVietnamDateTime } from '../../utils/dateTime'
+import { useSnackbar } from '../../utils/useSnackbar'
 
 function formatVital(value) {
   if (value === null || value === undefined || value === '') {
@@ -51,6 +54,7 @@ function VitalBox({ label, value, unit }) {
 export default function EncounterExamPage() {
   const { encounterId } = useParams()
   const navigate = useNavigate()
+  const { snackbar, showSnackbar } = useSnackbar()
 
   const [encounter, setEncounter] = useState(null)
   const [isLoading, setIsLoading] = useState(true)
@@ -58,8 +62,13 @@ export default function EncounterExamPage() {
   const [errorMessage, setErrorMessage] = useState('')
   const [isLabOrderOpen, setIsLabOrderOpen] = useState(false)
   const [isPrescriptionOrderOpen, setIsPrescriptionOrderOpen] = useState(false)
+  const [isTransferOpen, setIsTransferOpen] = useState(false)
+  const [transferErrorMessage, setTransferErrorMessage] = useState('')
   const [orderedLabTests, setOrderedLabTests] = useState([])
   const [prescriptions, setPrescriptions] = useState([])
+  const activePrescriptions = prescriptions?.filter(
+    (prescription) => prescription.status !== 'cancelled'
+  ) || []
 
   const [form, setForm] = useState({
     chief_complaint: '',
@@ -119,7 +128,7 @@ export default function EncounterExamPage() {
     setIsSaving(true)
 
     try {
-      const data = await updateEncounter(encounterId, form)
+      const data = await updateEncounter(encounterId, normalizeEncounterForm(form))
       setEncounter(data)
       setErrorMessage('')
     } catch (error) {
@@ -140,7 +149,7 @@ export default function EncounterExamPage() {
 
     try {
       await updateEncounter(encounterId, {
-        ...form,
+        ...normalizeEncounterForm(form),
         status: 'completed',
       })
 
@@ -148,6 +157,34 @@ export default function EncounterExamPage() {
     } catch (error) {
       console.error(error)
       setErrorMessage('Không thể hoàn tất lượt khám.')
+    } finally {
+      setIsSaving(false)
+    }
+  }
+
+  const handleTransferSpecialty = async ({ department, reason }) => {
+    if (!form.diagnosis.trim()) {
+      setTransferErrorMessage('Vui lòng nhập chẩn đoán hoặc nhận định ban đầu trước khi chuyển khoa.')
+      return
+    }
+
+    setIsSaving(true)
+    setTransferErrorMessage('')
+
+    try {
+      await updateEncounter(encounterId, normalizeEncounterForm(form))
+      await transferEncounterSpecialty(encounterId, {
+        department,
+        reason: reason.trim(),
+      })
+
+      setIsTransferOpen(false)
+      navigate('/app/consultation-queue')
+    } catch (error) {
+      console.error(error)
+      setTransferErrorMessage(
+        getApiErrorMessage(error) || 'Không thể chuyển khám chuyên khoa.',
+      )
     } finally {
       setIsSaving(false)
     }
@@ -174,11 +211,36 @@ export default function EncounterExamPage() {
       createdPrescription,
       ...current,
     ])
+    showSnackbar({
+      type: 'success',
+      message: 'Đã gửi đơn thuốc.',
+    })
     setIsPrescriptionOrderOpen(false)
   }
 
+  const handlePrescriptionCancelled = (updatedPrescription) => {
+    setPrescriptions((current) => (
+      current.map((prescription) => (
+        prescription.id === updatedPrescription.id
+          ? updatedPrescription
+          : prescription
+      ))
+    ))
+    showSnackbar({
+      type: 'success',
+      message: `Đã hủy đơn thuốc #${updatedPrescription.id}.`,
+    })
+  }
+
+  const handlePrescriptionCancelError = (message) => {
+    showSnackbar({
+      type: 'error',
+      message,
+    })
+  }
+
   const visit = encounter.visit_detail
-  const vitalSign = encounter.latest_vital_sign
+  const vitalSign = encounter?.latest_vital_sign
   const bloodPressure =
     vitalSign?.systolic_bp && vitalSign?.diastolic_bp
       ? `${vitalSign.systolic_bp}/${vitalSign.diastolic_bp}`
@@ -366,7 +428,14 @@ export default function EncounterExamPage() {
               <MoveUpRight size={15} />
             </button>
 
-            <button type="button" className="exam-action-button">
+            <button
+              type="button"
+              className="exam-action-button"
+              onClick={() => {
+                setTransferErrorMessage('')
+                setIsTransferOpen(true)
+              }}
+            >
               <span>
                 <MoveUpRight size={17} />
                 Chuyển chuyên khoa
@@ -399,11 +468,11 @@ export default function EncounterExamPage() {
               </section>
             )}
 
-            {prescriptions.length > 0 && (
+            {activePrescriptions.length > 0 && (
               <section className="exam-lab-summary" aria-label="Đơn thuốc đã kê">
                 <div>
                   <strong>Đã kê đơn thuốc</strong>
-                  <span>{prescriptions.length} đơn thuốc</span>
+                  <span>{activePrescriptions.length} đơn thuốc</span>
                 </div>
 
                 <button type="button" onClick={() => setIsPrescriptionOrderOpen(true)}>
@@ -457,9 +526,50 @@ export default function EncounterExamPage() {
           encounterId={encounter.id}
           existingPrescriptions={prescriptions}
           onClose={() => setIsPrescriptionOrderOpen(false)}
+          onCancelled={handlePrescriptionCancelled}
+          onCancelError={handlePrescriptionCancelError}
           onSubmitted={handlePrescriptionSubmitted}
         />
       )}
+
+      {isTransferOpen && (
+        <SpecialtyTransferModal
+          currentDepartmentId={encounter.department}
+          currentDepartmentName={encounter.department_detail?.name || 'Chưa phân khoa'}
+          errorMessage={transferErrorMessage}
+          isSubmitting={isSaving}
+          patientName={visit?.patient_name || 'Bệnh nhân chưa rõ'}
+          visitNumber={visit?.visit_number || 'Chưa có mã lượt khám'}
+          onClose={() => {
+            if (isSaving) return
+            setIsTransferOpen(false)
+            setTransferErrorMessage('')
+          }}
+          onSubmit={handleTransferSpecialty}
+        />
+      )}
+
+      <Snackbar snackbar={snackbar} />
     </div>
   )
+}
+
+function getApiErrorMessage(error) {
+  if (!error?.data || typeof error.data !== 'object') {
+    return error?.message
+  }
+
+  const firstValue = Object.values(error.data)[0]
+  if (Array.isArray(firstValue)) {
+    return firstValue[0]
+  }
+
+  return firstValue || error.message
+}
+
+function normalizeEncounterForm(form) {
+  return {
+    ...form,
+    follow_up_date: form.follow_up_date || null,
+  }
 }

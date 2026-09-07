@@ -2,6 +2,7 @@ export const endpoints = {
   authLogin: '/auth/login/',
   authMe: '/auth/me/',
   authLogout: '/auth/logout/',
+  auditLogs: '/audit-logs/',
 
   users: '/users/',
   userDetail: (id) => `/users/${id}/`,

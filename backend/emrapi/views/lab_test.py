@@ -3,7 +3,11 @@ from rest_framework import filters, viewsets, generics
 from rest_framework.exceptions import PermissionDenied, ValidationError
 
 from emrapi.models import Encounter, LabTest, StaffProfile
-from emrapi.permission import IsAnyStaff
+from emrapi.permission import (
+    IsDoctor,
+    IsDoctorOrLabTechnicianOrAdmin,
+    IsLabTechnicianOrAdmin,
+)
 from emrapi.serializers import LabTestSerializer
 
 
@@ -48,9 +52,11 @@ def validate_lab_test_transition(instance, next_status):
         })
 
 
-class LabTestViewSet(viewsets.ModelViewSet):
+from emrapi.audit import AuditTrailMixin
+
+
+class LabTestViewSet(AuditTrailMixin, viewsets.ModelViewSet):
     serializer_class = LabTestSerializer
-    permission_classes = [IsAnyStaff]
     filter_backends = [filters.SearchFilter, filters.OrderingFilter]
     search_fields = [
         'encounter__visit__visit_number',
@@ -64,6 +70,14 @@ class LabTestViewSet(viewsets.ModelViewSet):
     ordering_fields = ['ordered_at', 'performed_at', 'status', 'created_at']
     ordering = ['-ordered_at']
     http_method_names = ['get', 'post', 'patch', 'head', 'options']
+
+    def get_permissions(self):
+        permission_classes = (
+            [IsDoctor]
+            if self.action == 'create'
+            else [IsDoctorOrLabTechnicianOrAdmin]
+        )
+        return [permission() for permission in permission_classes]
 
     queryset = (
         LabTest.objects
@@ -225,9 +239,9 @@ class LabTestViewSet(viewsets.ModelViewSet):
 
         raise PermissionDenied('Ban khong co quyen cap nhat chi dinh xet nghiem.')
 
-class LabTechnicianQueueView(generics.ListAPIView):
+class LabTechnicianQueueView(AuditTrailMixin, generics.ListAPIView):
     serializer_class = LabTestSerializer
-    permission_classes = [IsAnyStaff]
+    permission_classes = [IsLabTechnicianOrAdmin]
     filter_backends = [filters.SearchFilter,filters.OrderingFilter,]
     search_fields = [
         'test_catalog__code',
@@ -244,20 +258,11 @@ class LabTechnicianQueueView(generics.ListAPIView):
         if not staff:
             return LabTest.objects.none()
 
-        technician = getattr(staff,'lab_technician_profile',None)
-        if technician is None:
-            return LabTest.objects.none()
-
-        categories = get_lab_categories_for_staff(staff)
-        if not categories:
-            return LabTest.objects.none()
-
-        return (
+        queryset = (
             LabTest.objects
             .filter(
                 active=True,
                 status=LabTest.Status.ORDERED,
-                test_catalog__category__in=categories,
             )
             .select_related(
                 'encounter',
@@ -270,3 +275,16 @@ class LabTechnicianQueueView(generics.ListAPIView):
                 'ordered_by__staff__user',
             )
         )
+
+        if staff.role == StaffProfile.Role.ADMIN:
+            return queryset
+
+        technician = getattr(staff, 'lab_technician_profile', None)
+        if technician is None:
+            return LabTest.objects.none()
+
+        categories = get_lab_categories_for_staff(staff)
+        if not categories:
+            return LabTest.objects.none()
+
+        return queryset.filter(test_catalog__category__in=categories)

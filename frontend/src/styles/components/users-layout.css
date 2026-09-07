@@ -112,6 +112,10 @@
   border-radius: var(--radius-md);
 }
 
+.users-toolbar--staff-profiles {
+  grid-template-columns: minmax(0, 1fr) minmax(180px, auto) 40px;
+}
+
 .users-toolbar__search {
   min-height: 40px;
   display: flex;
@@ -217,6 +221,10 @@
 
   .users-toolbar {
     grid-template-columns: minmax(240px, 1fr) repeat(2, minmax(150px, auto)) 40px;
+  }
+
+  .users-toolbar--staff-profiles {
+    grid-template-columns: minmax(0, 1fr) minmax(180px, auto) 40px;
   }
 
   .users-toolbar select:nth-of-type(3) {

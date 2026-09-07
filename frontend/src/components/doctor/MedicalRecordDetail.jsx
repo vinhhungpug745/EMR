@@ -49,14 +49,14 @@ export function MedicalRecordDetail({medicalRecord,onBack,onEdit,}) {
         </button>
 
         <div className="medical-record-detail__actions">
-          <button
+          {/* <button
             className="secondary-button"
             type="button"
             onClick={() => window.print()}
           >
             <FileText size={17} />
             Xuất hồ sơ
-          </button>
+          </button> */}
 
           <button
             className="primary-button"
@@ -223,6 +223,8 @@ function VisitTimelineItem({ visit }) {
 
 function EncounterPanel({ encounter }) {
   const latestVitalSign = encounter.vital_signs?.[0]
+  const activePrescriptions = (encounter.prescriptions || [])
+    .filter((prescription) => prescription.status !== 'cancelled')
 
   return (
     <section className="encounter-panel">
@@ -298,13 +300,13 @@ function EncounterPanel({ encounter }) {
           title="Đơn thuốc"
           empty="Chưa có đơn thuốc"
         >
-          {!!encounter.prescriptions?.length && (
+          {!!activePrescriptions.length && (
             <ul className="clinical-list">
-              {encounter.prescriptions.flatMap((prescription) => (
+              {activePrescriptions.flatMap((prescription) => (
                 prescription.items.map((item) => (
                   <li key={`${prescription.id}-${item.id}`}>
                     <strong>{item.medication_name || 'Thuốc'}</strong>
-                    <span>{[item.dosage, item.frequency, item.duration].filter(Boolean).join(' · ')}</span>
+                    <span>{[prescription.status_display, item.dosage, item.frequency, item.duration].filter(Boolean).join(' · ')}</span>
                   </li>
                 ))
               ))}

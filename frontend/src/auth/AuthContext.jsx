@@ -28,7 +28,7 @@ export function AuthProvider({ children }) {
         const data = await getCurrentUser()
         if (isMounted) setUser(data.user)
       } catch {
-        clearAuthTokens()
+        if (isMounted) clearAuthTokens()
       } finally {
         if (isMounted) setIsLoading(false)
       }

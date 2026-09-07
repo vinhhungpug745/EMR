@@ -1,13 +1,13 @@
 from rest_framework import filters, viewsets
 
 from emrapi.models import Medication
-from emrapi.permission import IsAnyStaff
+from emrapi.permission import IsAdminOrReadOnly
 from emrapi.serializers import MedicationSerializer, MedicationSummarySerializer
 
 
 class MedicationViewSet(viewsets.ModelViewSet):
     queryset = Medication.objects.all()
-    permission_classes = [IsAnyStaff]
+    permission_classes = [IsAdminOrReadOnly]
     filter_backends = [filters.SearchFilter, filters.OrderingFilter]
     search_fields = ['code', 'name', 'active_ingredient', 'strength']
     ordering_fields = ['code', 'name', 'active_ingredient', 'strength', 'created_at']

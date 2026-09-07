@@ -67,6 +67,14 @@ class IsLabTechnicianOrAdmin(HasStaffRole):
     allowed_roles = [StaffProfile.Role.LAB_TECHNICIAN, StaffProfile.Role.ADMIN]
 
 
+class IsDoctorOrLabTechnicianOrAdmin(HasStaffRole):
+    allowed_roles = [
+        StaffProfile.Role.DOCTOR,
+        StaffProfile.Role.LAB_TECHNICIAN,
+        StaffProfile.Role.ADMIN,
+    ]
+
+
 class IsClinicalStaff(HasStaffRole):
     """Nurse, Doctor, Lab tech - nhung nguoi truc tiep tham gia kham chua benh."""
     allowed_roles = [
@@ -79,6 +87,18 @@ class IsClinicalStaff(HasStaffRole):
 class IsAnyStaff(HasStaffRole):
     """Bat ky nhan vien active nao, dung cho endpoint chi can dang nhap noi bo."""
     allowed_roles = [r.value for r in StaffProfile.Role]
+
+
+class IsAdminOrReadOnly(HasStaffRole):
+    """Cho mọi nhân viên active đọc, nhưng chỉ admin được ghi dữ liệu."""
+
+    message = 'Chỉ quản trị viên EMR mới có quyền thay đổi dữ liệu này.'
+    allowed_roles = [r.value for r in StaffProfile.Role]
+
+    def has_permission(self, request, view):
+        if not super().has_permission(request, view):
+            return False
+        return request.method in SAFE_METHODS or request.staff_profile.role == StaffProfile.Role.ADMIN
 
 
 class IsAssignedDoctorOrAdmin(HasStaffRole):

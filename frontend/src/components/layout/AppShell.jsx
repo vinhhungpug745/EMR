@@ -85,10 +85,10 @@ export function AppShell() {
           >
             <Menu size={21} />
           </button>
-          <div className="topbar__search">
+          {/* <div className="topbar__search">
             <Search size={18} aria-hidden="true" />
             <input type="search" placeholder="Tìm bệnh nhân, hồ sơ, lượt khám..." aria-label="Tìm kiếm" />
-          </div>
+          </div> */}
           <div className="topbar__actions">
             <button className="icon-button" type="button" aria-label="Thông báo">
               <Bell size={19} />

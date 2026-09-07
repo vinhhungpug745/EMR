@@ -13,6 +13,10 @@ export function getLabTests(params = {}) {
     searchParams.set('encounter', params.encounter)
   }
 
+  if (params.status) {
+    searchParams.set('status', params.status)
+  }
+
   if (params.ordering) {
     searchParams.set('ordering', params.ordering)
   }

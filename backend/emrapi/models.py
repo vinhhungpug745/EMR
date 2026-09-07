@@ -195,9 +195,7 @@ class LabTechnicianProfile(BaseModel):
 
 class Visit(BaseModel):
     class VisitType(models.TextChoices):
-        OUTPATIENT = 'outpatient', 'Ngoai tru'
-        INPATIENT = 'inpatient', 'Noi tru'
-        EMERGENCY = 'emergency', 'Cap cuu'
+        OUTPATIENT = 'outpatient', 'Ngoại trú'
 
     class Status(models.TextChoices):
         CHECKED_IN = 'checked_in', 'Da tiep nhan'
@@ -249,6 +247,8 @@ class Visit(BaseModel):
         return f'{self.visit_number} - {self.medical_record.patient.full_name}'
 
     def clean(self):
+        if self._state.adding and self.visit_type != self.VisitType.OUTPATIENT:
+            raise ValidationError({'visit_type': 'Hệ thống chỉ tiếp nhận khám ngoại trú.'})
         if self.status == self.Status.COMPLETED and not self.completed_at:
             raise ValidationError({'completed_at': 'Lan den da hoan thanh phai co thoi gian ket thuc.'})
         if self.completed_at and self.completed_at < self.arrived_at:

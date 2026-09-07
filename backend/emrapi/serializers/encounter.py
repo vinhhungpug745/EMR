@@ -1,7 +1,7 @@
 from django.utils import timezone
 from rest_framework import serializers
 
-from emrapi.models import Encounter
+from emrapi.models import Encounter, VitalSign
 
 from .base import ModelCleanSerializer, get_request_staff
 from .department import DepartmentSummarySerializer
@@ -115,7 +115,15 @@ class EncounterSerializer(ModelCleanSerializer):
         return super().create(validated_data)
 
     def get_latest_vital_sign(self, obj):
-        vital_sign = obj.vital_signs.order_by('-created_at').first()
+        vital_sign = (
+            VitalSign.objects
+            .filter(
+                encounter__visit=obj.visit,
+                active=True,
+            )
+            .order_by('-created_at')
+            .first()
+        )
 
         if not vital_sign:
             return None
@@ -144,9 +152,14 @@ class EncounterSerializer(ModelCleanSerializer):
                     'Status': 'Chỉ bác sĩ mới được bắt đầu khám'
                 })
 
-            if instance.status != Encounter.Status.VITALS_DONE:
+            has_vital_sign = VitalSign.objects.filter(
+                encounter__visit=instance.visit,
+                active=True,
+            ).exists()
+
+            if not has_vital_sign:
                 raise serializers.ValidationError({
-                    'Status': 'Chỉ bắt đầu khám sau khi đã do sinh hiệu'
+                    'status': 'Chỉ bắt đầu khám sau khi đã đo sinh hiệu.'
                 })
 
             if not instance.started_at:
@@ -183,7 +196,15 @@ class ConsultationQueueSerializer(serializers.ModelSerializer):
         ]
 
     def get_latest_vital_sign(self, obj):
-        vital_sign = obj.vital_signs.order_by('-created_at').first()
+        vital_sign = (
+            VitalSign.objects
+            .filter(
+                encounter__visit=obj.visit,
+                active=True,
+            )
+            .order_by('-created_at')
+            .first()
+        )
 
         if not vital_sign:
             return None

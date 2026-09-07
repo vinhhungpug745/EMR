@@ -10,7 +10,7 @@ import {
 } from 'lucide-react'
 
 import { getMedications } from '../../api/medications'
-import { createPrescription } from '../../api/prescriptions'
+import { createPrescription, updatePrescription } from '../../api/prescriptions'
 import { PaginationFooter } from '../common/PaginationFooter'
 import { usePaginatedResource } from '../../utils/usePaginatedResource'
 
@@ -72,13 +72,20 @@ export default function PrescriptionOrderModal({
   encounterId,
   existingPrescriptions = [],
   onClose,
+  onCancelError,
+  onCancelled,
   onSubmitted,
 }) {
   const [searchTerm, setSearchTerm] = useState('')
   const [items, setItems] = useState([])
   const [note, setNote] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [cancellingPrescriptionId, setCancellingPrescriptionId] = useState(null)
   const [submitErrorMessage, setSubmitErrorMessage] = useState('')
+
+  const activePrescriptions = existingPrescriptions.filter(
+    (prescription) => prescription.status !== 'cancelled',
+  )
 
   const fetchMedications = useCallback(
     ({ page, pageSize }) =>
@@ -108,7 +115,7 @@ export default function PrescriptionOrderModal({
     errorFallback: 'Không thể tải danh mục thuốc.',
   })
 
-  const issuedItems = existingPrescriptions.flatMap((prescription) => (
+  const issuedItems = activePrescriptions.flatMap((prescription) => (
     (prescription.items || []).map((item) => ({
       key: `issued-${prescription.id}-${item.id}`,
       type: 'issued',
@@ -233,6 +240,30 @@ export default function PrescriptionOrderModal({
       )
     } finally {
       setIsSubmitting(false)
+    }
+  }
+
+  async function handleCancelPrescription(prescriptionId) {
+    const shouldCancel = window.confirm('Hủy đơn thuốc này?')
+
+    if (!shouldCancel) return
+
+    setCancellingPrescriptionId(prescriptionId)
+    setSubmitErrorMessage('')
+
+    try {
+      const updatedPrescription = await updatePrescription(prescriptionId, {
+        status: 'cancelled',
+      })
+
+      onCancelled?.(updatedPrescription)
+    } catch (error) {
+      console.error(error)
+      const message = error?.message || 'Không thể hủy đơn thuốc.'
+      setSubmitErrorMessage(message)
+      onCancelError?.(message)
+    } finally {
+      setCancellingPrescriptionId(null)
     }
   }
 
@@ -373,7 +404,16 @@ export default function PrescriptionOrderModal({
                         )}
                       </div>
 
-                      {!isIssued && (
+                      {isIssued ? (
+                        <button
+                          type="button"
+                          aria-label={`Hủy đơn thuốc ${item.prescriptionId}`}
+                          disabled={cancellingPrescriptionId === item.prescriptionId}
+                          onClick={() => handleCancelPrescription(item.prescriptionId)}
+                        >
+                          <Trash2 size={15} />
+                        </button>
+                      ) : (
                         <button
                           type="button"
                           aria-label={`Bỏ ${item.medication.name}`}

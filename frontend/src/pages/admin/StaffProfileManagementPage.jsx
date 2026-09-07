@@ -66,7 +66,7 @@ export default function StaffProfileManagementPage() {
         </div>
       </header>
 
-      <section className="users-toolbar" aria-label="Bộ lọc hồ sơ nhân viên">
+      <section className="users-toolbar users-toolbar--staff-profiles" aria-label="Bộ lọc hồ sơ nhân viên">
         <label className="users-toolbar__search">
           <Search size={17} aria-hidden="true" />
           <input

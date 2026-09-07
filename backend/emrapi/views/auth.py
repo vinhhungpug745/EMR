@@ -13,12 +13,16 @@ from emrapi.serializers.auth import (
 )
 
 
-class LoginView(TokenObtainPairView):
+from emrapi.audit import AuditTrailMixin
+
+
+class LoginView(AuditTrailMixin, TokenObtainPairView):
     permission_classes = [permissions.AllowAny]
     serializer_class = LoginSerializer
 
 
 class CurrentUserView(APIView):
+    # Restoring an existing session is a background check, not a user action.
     permission_classes = [permissions.IsAuthenticated]
 
     def get(self, request):
@@ -39,7 +43,7 @@ class CurrentUserView(APIView):
         return Response({'user': serializer.data})
 
 
-class LogoutView(APIView):
+class LogoutView(AuditTrailMixin, APIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def post(self, request):

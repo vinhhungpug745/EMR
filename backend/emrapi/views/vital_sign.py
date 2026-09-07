@@ -3,7 +3,7 @@ from rest_framework import filters, viewsets,generics
 from rest_framework.exceptions import ValidationError
 
 from emrapi.models import Encounter, VitalSign
-from emrapi.permission import IsAnyStaff
+from emrapi.permission import IsNurseOrAdmin
 from emrapi.serializers import VitalSignSerializer, VitalSignQueueSerializer
 
 
@@ -23,7 +23,7 @@ class VitalSignViewSet(viewsets.ModelViewSet):
     )
 
     serializer_class = VitalSignSerializer
-    permission_classes = [IsAnyStaff]
+    permission_classes = [IsNurseOrAdmin]
 
     filter_backends = [filters.SearchFilter,filters.OrderingFilter,]
 
@@ -120,7 +120,7 @@ class VitalSignViewSet(viewsets.ModelViewSet):
 
 class VitalSignQueueView(generics.ListAPIView):
     serializer_class = VitalSignQueueSerializer
-    permission_classes = [IsAnyStaff]
+    permission_classes = [IsNurseOrAdmin]
 
     queryset = (
         Encounter.objects

@@ -47,6 +47,13 @@ export function updateEncounter(id, data) {
   })
 }
 
+export function transferEncounterSpecialty(id, data) {
+  return apiRequest(`${endpoints.encounterDetail(id)}transfer-specialty/`, {
+    method: 'POST',
+    body: JSON.stringify(data),
+  })
+}
+
 export function startEncounter(id) {
   return apiRequest(endpoints.encounterDetail(id), {
     method: 'PATCH',
