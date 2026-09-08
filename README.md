@@ -12,19 +12,6 @@ Trong quy trình khám ngoại trú, dữ liệu của một bệnh nhân đư�
 
 EMR Care tổ chức dữ liệu theo một luồng thống nhất:
 
-```mermaid
-flowchart LR
-    A[Tiếp nhận bệnh nhân] --> B[Đo sinh hiệu]
-    B --> C[Hàng đợi khám]
-    C --> D[Bác sĩ khám]
-    D --> E{Xử lý tiếp}
-    E -->|Chỉ định| F[Xét nghiệm]
-    F --> D
-    E -->|Chuyển khoa| C
-    E -->|Kê đơn| G[Đơn thuốc]
-    D --> H[Hoàn tất lượt khám]
-    G --> H
-```
 
 Hồ sơ bệnh án giữ liên kết giữa thông tin bệnh nhân, các lần đến khám, lượt khám chuyên khoa, sinh hiệu, chẩn đoán, đơn thuốc, xét nghiệm và tệp đính kèm.
 
@@ -37,22 +24,6 @@ Hồ sơ bệnh án giữ liên kết giữa thông tin bệnh nhân, các lần
 - Lưu nhật ký thao tác kèm người thực hiện, hành động, đối tượng liên quan và thời gian.
 - Tách frontend và backend qua REST API; cung cấp tài liệu tương tác bằng Swagger và ReDoc.
 - Hỗ trợ dữ liệu mẫu có thể tái tạo để kiểm thử và trình diễn toàn bộ quy trình.
-
-## Kiến trúc
-
-```mermaid
-flowchart LR
-    U[Người dùng theo vai trò] --> FE[React 19 + Vite 8]
-    FE -->|REST / JSON| API[Django REST Framework]
-    API --> AUTH[JWT + RBAC]
-    API --> DB[(MySQL)]
-    API --> AUDIT[Audit log]
-    API --> DOCS[Swagger / ReDoc]
-    CF[Cloudflare Tunnel] -. Demo công khai .-> FE
-    CF -. Demo công khai .-> API
-```
-
-Trong môi trường local, frontend gửi yêu cầu đến `/api`; Vite proxy yêu cầu sang Django tại `http://127.0.0.1:8000` và bỏ tiền tố `/api`.
 
 ## Chức năng theo vai trò
 
@@ -197,24 +168,6 @@ Khi backend đang chạy:
 - ReDoc: [http://127.0.0.1:8000/redoc/](http://127.0.0.1:8000/redoc/)
 - Django Admin: [http://127.0.0.1:8000/admin/](http://127.0.0.1:8000/admin/)
 
-## Kiểm tra dự án
-
-Backend:
-
-```powershell
-cd backend
-.\.venv\Scripts\Activate.ps1
-python manage.py check
-python manage.py test
-```
-
-Frontend:
-
-```powershell
-cd frontend
-npm run lint
-npm run build
-```
 
 ## Cấu trúc repository
 
