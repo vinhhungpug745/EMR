@@ -1,64 +1,90 @@
 # EMR Care
 
-EMR Care là hệ thống quản lý bệnh án điện tử phục vụ quy trình khám ngoại trú tại cơ sở y tế quy mô vừa và nhỏ. Hệ thống liên kết dữ liệu từ khâu tiếp nhận bệnh nhân, đo sinh hiệu, khám bệnh, chỉ định xét nghiệm, kê đơn thuốc đến khi hoàn tất lượt khám.
+Hệ thống quản lý bệnh án điện tử cho quy trình khám ngoại trú, kết nối công việc của nhân viên tiếp nhận, điều dưỡng, bác sĩ, nhân viên xét nghiệm và quản trị viên trên một nền tảng Web.
 
-> Đây là sản phẩm phục vụ học tập, kiểm thử và trình diễn đồ án. Hệ thống chưa được đánh giá để thay thế bệnh án giấy hoặc sử dụng với dữ liệu y tế thật.
+**Demo:** [https://emr-care.site](https://emr-care.site) · Môi trường trình diễn chạy qua Cloudflare Tunnel và chỉ truy cập được khi máy chủ demo đang hoạt động.
 
-## Chức năng chính
+> EMR Care là sản phẩm học tập và trình diễn đồ án. Hệ thống sử dụng dữ liệu giả lập, chưa được đánh giá để thay thế bệnh án giấy hoặc vận hành với dữ liệu y tế thật.
 
-- Đăng nhập bằng JWT và phân quyền theo vai trò.
-- Quản lý tài khoản, hồ sơ nhân viên và khoa chuyên môn.
-- Quản lý bệnh nhân, hồ sơ bệnh án, lần đến khám và lượt khám.
-- Tiếp nhận bệnh nhân vào quy trình khám ngoại trú.
-- Hàng đợi đo sinh hiệu, hàng đợi khám và hàng đợi xét nghiệm.
-- Ghi nhận sinh hiệu, nội dung khám, chẩn đoán và hướng điều trị.
-- Chỉ định xét nghiệm, tiếp nhận và trả kết quả xét nghiệm.
-- Kê đơn thuốc và quản lý danh mục thuốc.
-- Chuyển bệnh nhân sang chuyên khoa khác trong cùng lần đến khám.
-- Thống kê hoạt động khám ngoại trú và theo dõi nhật ký hệ thống.
+## Bài toán và giải pháp
 
-## Vai trò người dùng
+Trong quy trình khám ngoại trú, dữ liệu của một bệnh nhân được tạo và cập nhật qua nhiều bộ phận. Nếu mỗi bộ phận quản lý dữ liệu riêng, thông tin dễ bị trùng lặp, thiếu liên kết và khó truy vết.
 
-| Vai trò | Phạm vi chính |
-|---|---|
-| Quản trị viên | Quản lý người dùng, nhân viên, khoa, danh mục, báo cáo và nhật ký |
-| Nhân viên tiếp nhận | Tra cứu bệnh nhân, tạo hồ sơ và tiếp nhận lượt đến khám |
-| Điều dưỡng | Xem hàng đợi và ghi nhận dấu hiệu sinh tồn |
-| Bác sĩ | Khám bệnh, xem bệnh án, chỉ định xét nghiệm, kê đơn và chuyển khoa |
-| Nhân viên xét nghiệm | Tiếp nhận chỉ định, nhập kết quả và cập nhật trạng thái xét nghiệm |
+EMR Care tổ chức dữ liệu theo một luồng thống nhất:
 
-## Công nghệ sử dụng
-
-- Backend: Python, Django 6, Django REST Framework.
-- Frontend: React 19, React Router, Vite 8.
-- Cơ sở dữ liệu: MySQL.
-- Xác thực: JSON Web Token với Simple JWT.
-- Tài liệu API: Swagger và ReDoc.
-- Triển khai trình diễn: Cloudflare Tunnel và tên miền `emr-care.site`.
-
-## Cấu trúc thư mục
-
-```text
-EMR/
-├── backend/          # Django REST API, migrations, test và dữ liệu mẫu
-├── frontend/         # Ứng dụng React/Vite
-├── doc/              # Nội dung các chương báo cáo
-├── .gitignore
-└── README.md
+```mermaid
+flowchart LR
+    A[Tiếp nhận bệnh nhân] --> B[Đo sinh hiệu]
+    B --> C[Hàng đợi khám]
+    C --> D[Bác sĩ khám]
+    D --> E{Xử lý tiếp}
+    E -->|Chỉ định| F[Xét nghiệm]
+    F --> D
+    E -->|Chuyển khoa| C
+    E -->|Kê đơn| G[Đơn thuốc]
+    D --> H[Hoàn tất lượt khám]
+    G --> H
 ```
 
-## Yêu cầu môi trường
+Hồ sơ bệnh án giữ liên kết giữa thông tin bệnh nhân, các lần đến khám, lượt khám chuyên khoa, sinh hiệu, chẩn đoán, đơn thuốc, xét nghiệm và tệp đính kèm.
 
-Máy chạy dự án cần có:
+## Điểm nổi bật kỹ thuật
+
+- Xác thực bằng JWT, tự làm mới access token và phân quyền API theo 5 vai trò.
+- Quản lý quy trình khám bằng trạng thái nghiệp vụ để hạn chế thao tác sai thứ tự.
+- Xây dựng ba hàng đợi từ dữ liệu trong MySQL: đo sinh hiệu, khám bệnh và xét nghiệm.
+- Sử dụng transaction và `select_for_update()` tại các thao tác đổi trạng thái quan trọng để giảm nguy cơ xử lý trùng.
+- Lưu nhật ký thao tác kèm người thực hiện, hành động, đối tượng liên quan và thời gian.
+- Tách frontend và backend qua REST API; cung cấp tài liệu tương tác bằng Swagger và ReDoc.
+- Hỗ trợ dữ liệu mẫu có thể tái tạo để kiểm thử và trình diễn toàn bộ quy trình.
+
+## Kiến trúc
+
+```mermaid
+flowchart LR
+    U[Người dùng theo vai trò] --> FE[React 19 + Vite 8]
+    FE -->|REST / JSON| API[Django REST Framework]
+    API --> AUTH[JWT + RBAC]
+    API --> DB[(MySQL)]
+    API --> AUDIT[Audit log]
+    API --> DOCS[Swagger / ReDoc]
+    CF[Cloudflare Tunnel] -. Demo công khai .-> FE
+    CF -. Demo công khai .-> API
+```
+
+Trong môi trường local, frontend gửi yêu cầu đến `/api`; Vite proxy yêu cầu sang Django tại `http://127.0.0.1:8000` và bỏ tiền tố `/api`.
+
+## Chức năng theo vai trò
+
+| Vai trò | Chức năng chính |
+|---|---|
+| Quản trị viên | Quản lý tài khoản, nhân viên, khoa, thuốc, danh mục xét nghiệm, báo cáo và audit log |
+| Nhân viên tiếp nhận | Tra cứu hoặc tạo bệnh nhân, quản lý hồ sơ và tạo lần đến khám |
+| Điều dưỡng | Theo dõi hàng đợi, đo và cập nhật dấu hiệu sinh tồn |
+| Bác sĩ | Xem bệnh án, khám, chẩn đoán, kê đơn, chỉ định xét nghiệm và chuyển khoa |
+| Nhân viên xét nghiệm | Tiếp nhận chỉ định, cập nhật tiến độ và nhập kết quả xét nghiệm |
+
+## Công nghệ
+
+| Thành phần | Công nghệ |
+|---|---|
+| Frontend | React 19, React Router 7, Vite 8, CSS |
+| Backend | Python, Django 6, Django REST Framework |
+| Cơ sở dữ liệu | MySQL 8, PyMySQL |
+| Xác thực | Simple JWT |
+| Tài liệu API | drf-yasg, Swagger UI, ReDoc |
+| Triển khai demo | Cloudflare Tunnel, domain `emr-care.site` |
+
+## Chạy dự án trên máy local
+
+### Yêu cầu
 
 - Git.
 - Python 3.12 trở lên.
-- Node.js 20.19 trở lên hoặc Node.js 22.12 trở lên.
+- Node.js 20.19 trở lên hoặc 22.12 trở lên.
 - MySQL 8.
 
-Docker không bắt buộc đối với phiên bản hiện tại của dự án.
-
-## Cài đặt lần đầu
+Phiên bản hiện tại chạy trực tiếp trên máy và không yêu cầu Docker.
 
 ### 1. Clone repository
 
@@ -67,9 +93,9 @@ git clone https://github.com/vinhhungpug745/EMR.git
 cd EMR
 ```
 
-### 2. Tạo cơ sở dữ liệu MySQL
+### 2. Tạo database
 
-Đăng nhập MySQL và tạo một cơ sở dữ liệu rỗng:
+Chạy trong MySQL:
 
 ```sql
 CREATE DATABASE emr_db
@@ -77,11 +103,7 @@ CREATE DATABASE emr_db
   COLLATE utf8mb4_unicode_ci;
 ```
 
-Có thể thay `emr_db` bằng tên khác, nhưng tên trong file cấu hình backend phải giống tên đã tạo.
-
-### 3. Cài đặt backend
-
-Trong PowerShell, từ thư mục gốc của dự án:
+### 3. Cấu hình backend
 
 ```powershell
 cd backend
@@ -91,13 +113,14 @@ python -m pip install --upgrade pip
 pip install -r requirements.txt
 ```
 
-Nếu PowerShell chặn script kích hoạt môi trường ảo, chạy lệnh sau trong đúng cửa sổ PowerShell hiện tại rồi kích hoạt lại:
+Nếu PowerShell chặn script kích hoạt môi trường ảo:
 
 ```powershell
 Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
+.\.venv\Scripts\Activate.ps1
 ```
 
-Tạo file `backend/.env` với nội dung:
+Tạo file `backend/.env`:
 
 ```dotenv
 DEBUG=True
@@ -110,33 +133,21 @@ DB_HOST=127.0.0.1
 DB_PORT=3306
 ```
 
-Không commit file `.env` hoặc mật khẩu thật lên GitHub.
+Không commit `.env` hoặc thông tin đăng nhập thật lên GitHub.
 
-Khởi tạo cấu trúc cơ sở dữ liệu:
+Khởi tạo database và nạp dữ liệu trình diễn:
 
 ```powershell
 python manage.py migrate
-```
-
-Nạp dữ liệu mẫu nếu cần trình diễn:
-
-```powershell
 python seed.py
-```
-
-Lệnh seed có thể chạy lại và sẽ cập nhật dữ liệu mẫu theo các mã định danh đã khai báo. Không chạy lệnh này trên cơ sở dữ liệu chứa dữ liệu thật.
-
-Khởi động backend:
-
-```powershell
 python manage.py runserver 8000
 ```
 
 Backend chạy tại `http://127.0.0.1:8000`.
 
-### 4. Cài đặt frontend
+### 4. Cấu hình frontend
 
-Mở một cửa sổ PowerShell mới, từ thư mục gốc của dự án:
+Mở terminal mới tại thư mục gốc:
 
 ```powershell
 cd frontend
@@ -144,19 +155,19 @@ npm install
 npm run dev
 ```
 
-Frontend chạy tại `http://localhost:3000`. Trong môi trường phát triển, Vite tự chuyển tiếp các yêu cầu `/api` đến backend ở cổng `8000`, vì vậy không cần tạo file `.env` cho frontend khi chạy local theo cấu hình mặc định.
+Truy cập `http://localhost:3000`. Với cấu hình local mặc định, frontend không cần file `.env` riêng.
 
-Nếu frontend và backend được phục vụ qua hai địa chỉ khác nhau, tạo file `frontend/.env`:
+Khi frontend và backend chạy trên hai địa chỉ khác nhau, tạo `frontend/.env`:
 
 ```dotenv
 VITE_API_BASE_URL=https://dia-chi-backend-cua-ban
 ```
 
-Sau khi sửa biến bắt đầu bằng `VITE_`, cần khởi động lại Vite hoặc build lại frontend.
+Khởi động lại Vite sau khi thay đổi biến môi trường.
 
-## Tài khoản dữ liệu mẫu
+## Tài khoản demo
 
-Sau khi chạy `python seed.py`, có thể đăng nhập bằng các tài khoản sau. Mật khẩu chung là `Emr@123456`.
+Chạy `python seed.py` để tạo dữ liệu giả lập. Các tài khoản dưới đây dùng chung mật khẩu `Emr@123456`.
 
 | Vai trò | Tên đăng nhập |
 |---|---|
@@ -166,32 +177,29 @@ Sau khi chạy `python seed.py`, có thể đăng nhập bằng các tài khoả
 | Bác sĩ | `bacsi.an` |
 | Nhân viên xét nghiệm | `xetnghiem.hai` |
 
-Các tài khoản này chỉ dành cho dữ liệu mẫu. Hãy đổi hoặc vô hiệu hóa chúng nếu triển khai hệ thống ra Internet.
+Không sử dụng các tài khoản hoặc mật khẩu demo trong môi trường thực tế.
 
-## Chạy dự án sau khi đã cài đặt
+## Kịch bản demo nhanh
 
-Mỗi lần làm việc, mở hai cửa sổ terminal.
+1. Đăng nhập với vai trò tiếp nhận, tìm hoặc tạo bệnh nhân và tạo lần đến khám.
+2. Đăng nhập với vai trò điều dưỡng, chọn bệnh nhân trong hàng đợi và ghi sinh hiệu.
+3. Đăng nhập với vai trò bác sĩ, mở lượt khám và nhập thông tin khám.
+4. Tạo chỉ định xét nghiệm hoặc kê đơn thuốc.
+5. Đăng nhập với vai trò xét nghiệm, tiếp nhận chỉ định và trả kết quả.
+6. Quay lại vai trò bác sĩ, xem kết quả và hoàn tất lượt khám.
+7. Dùng tài khoản quản trị để xem báo cáo và nhật ký thao tác.
 
-Terminal backend:
+## Tài liệu API
 
-```powershell
-cd backend
-.\.venv\Scripts\Activate.ps1
-python manage.py runserver 8000
-```
+Khi backend đang chạy:
 
-Terminal frontend:
+- Swagger UI: [http://127.0.0.1:8000/swagger/](http://127.0.0.1:8000/swagger/)
+- ReDoc: [http://127.0.0.1:8000/redoc/](http://127.0.0.1:8000/redoc/)
+- Django Admin: [http://127.0.0.1:8000/admin/](http://127.0.0.1:8000/admin/)
 
-```powershell
-cd frontend
-npm run dev
-```
+## Kiểm tra dự án
 
-MySQL phải đang chạy trước khi khởi động backend.
-
-## Kiểm tra chất lượng mã nguồn
-
-Kiểm tra cấu hình và test backend:
+Backend:
 
 ```powershell
 cd backend
@@ -200,7 +208,7 @@ python manage.py check
 python manage.py test
 ```
 
-Kiểm tra và build frontend:
+Frontend:
 
 ```powershell
 cd frontend
@@ -208,43 +216,39 @@ npm run lint
 npm run build
 ```
 
-Thư mục `frontend/dist` được tạo sau khi build và không được đưa lên Git.
+## Cấu trúc repository
 
-## Tài liệu API
+```text
+EMR/
+├── backend/
+│   ├── config/          # Cấu hình Django
+│   ├── emrapi/          # Models, serializers, views, permissions và tests
+│   ├── seed.py          # Tạo dữ liệu trình diễn
+│   └── requirements.txt
+├── frontend/
+│   ├── src/api/         # Lớp giao tiếp REST API
+│   ├── src/auth/        # Xác thực và bảo vệ route
+│   ├── src/components/  # Thành phần giao diện theo vai trò
+│   └── src/pages/       # Các màn hình nghiệp vụ
+├── doc/                 # Nội dung báo cáo đồ án
+└── README.md
+```
 
-Khi backend đang chạy:
+## Giới hạn hiện tại
 
-- Swagger UI: `http://127.0.0.1:8000/swagger/`
-- ReDoc: `http://127.0.0.1:8000/redoc/`
-- Django Admin: `http://127.0.0.1:8000/admin/`
-
-Các API nghiệp vụ được backend cung cấp ở đường dẫn gốc. Khi frontend chạy bằng Vite, yêu cầu có tiền tố `/api` sẽ được proxy và bỏ tiền tố trước khi gửi đến Django.
-
-## Quy trình nghiệp vụ trình diễn
-
-Để trình diễn một luồng khám đầy đủ:
-
-1. Nhân viên tiếp nhận tìm hoặc tạo bệnh nhân và tạo lần đến khám.
-2. Điều dưỡng mở hàng đợi, chọn bệnh nhân và ghi nhận sinh hiệu.
-3. Bác sĩ mở hàng đợi khám, nhập thông tin khám và chẩn đoán.
-4. Bác sĩ có thể kê đơn, chỉ định xét nghiệm hoặc chuyển chuyên khoa.
-5. Nhân viên xét nghiệm tiếp nhận chỉ định và nhập kết quả.
-6. Bác sĩ xem kết quả và hoàn tất lượt khám.
-7. Quản trị viên xem báo cáo và nhật ký hoạt động.
-
-Các hàng đợi hiện được lấy từ cơ sở dữ liệu theo trạng thái nghiệp vụ và thứ tự thời gian. Phiên bản hiện tại chưa sử dụng WebSocket; người dùng cần tải lại dữ liệu để nhận thay đổi mới nhất.
-
-## Triển khai trình diễn
-
-Hệ thống từng được công bố thử nghiệm tại `https://emr-care.site` bằng Cloudflare Tunnel, ánh xạ frontend và backend đang chạy trên máy triển khai ra tên miền công khai. Domain chỉ cung cấp địa chỉ truy cập; máy chạy frontend, backend, MySQL và Cloudflare Tunnel vẫn phải hoạt động.
-
-Cách triển khai này phù hợp cho kiểm thử và bảo vệ đồ án, chưa phải kiến trúc production có tính sẵn sàng cao. Khi triển khai thực tế cần bổ sung tối thiểu HTTPS ở reverse proxy, cấu hình bảo mật Django, máy chủ ứng dụng, phục vụ static file, sao lưu cơ sở dữ liệu, giám sát và chính sách bảo vệ dữ liệu y tế.
-
-## Phạm vi đề tài
-
-Phiên bản hiện tại tập trung vào quy trình khám ngoại trú nội bộ. Các chức năng ngoài phạm vi gồm cổng bệnh nhân, đặt lịch trực tuyến, viện phí và thanh toán, nội trú, bảo hiểm y tế, ký số hoàn chỉnh, liên thông HIS/LIS và khả năng thay thế bệnh án giấy theo quy định pháp luật.
+- Hàng đợi được đọc từ database theo trạng thái và thời gian; chưa sử dụng WebSocket hoặc Server-Sent Events.
+- Môi trường demo phụ thuộc vào máy cá nhân chạy frontend, backend, MySQL và Cloudflare Tunnel.
+- Chưa có cổng bệnh nhân, đặt lịch online, viện phí, bảo hiểm, nội trú hoặc thanh toán.
+- Chưa tích hợp chữ ký số và chưa liên thông HIS, LIS hay nền tảng y tế quốc gia.
+- Chưa đáp ứng đầy đủ các yêu cầu vận hành production như sao lưu tự động, giám sát, khả năng sẵn sàng cao và đánh giá bảo mật chuyên sâu.
 
 ## Tác giả
 
-- Repository: <https://github.com/vinhhungpug745/EMR>
-- Website trình diễn: <https://emr-care.site>
+**vinhhungpug745** — Full-stack development
+
+- GitHub: [github.com/vinhhungpug745](https://github.com/vinhhungpug745)
+- Email: [vinhhungpug745@gmail.com](mailto:vinhhungpug745@gmail.com)
+
+## License
+
+Repository hiện chưa công bố giấy phép mã nguồn mở. Mọi quyền thuộc về tác giả.
