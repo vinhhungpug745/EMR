@@ -167,7 +167,7 @@ Khởi động lại Vite sau khi thay đổi biến môi trường.
 
 ## Tài khoản demo
 
-Chạy `python seed.py` để tạo dữ liệu giả lập. Các tài khoản dưới đây dùng chung mật khẩu `Emr@123456`.
+Chạy `python seed.py` để tạo dữ liệu giả lập.
 
 | Vai trò | Tên đăng nhập |
 |---|---|
@@ -230,7 +230,6 @@ EMR/
 │   ├── src/auth/        # Xác thực và bảo vệ route
 │   ├── src/components/  # Thành phần giao diện theo vai trò
 │   └── src/pages/       # Các màn hình nghiệp vụ
-├── doc/                 # Nội dung báo cáo đồ án
 └── README.md
 ```
 
