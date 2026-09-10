@@ -40,10 +40,6 @@ export function MedicalRecordModal({
   const patient = medicalRecord?.patient_detail
 
   useEffect(() => {
-    setForm(normalizeRecord(medicalRecord))
-  }, [medicalRecord])
-
-  useEffect(() => {
     const handleKeyDown = (event) => {
       if (event.key === 'Escape' && !isSaving) onClose()
     }

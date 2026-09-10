@@ -15,6 +15,7 @@ import { usePaginatedResource } from '../../utils/usePaginatedResource'
 
 
 const PAGE_SIZE = 8
+const POLL_INTERVAL = 15_000
 
 export default function ConsultationQueuePage() {
   const { user } = useAuth()
@@ -63,6 +64,8 @@ export default function ConsultationQueuePage() {
     fetchPage: fetchQueue,
     resetKey: search,
     pageSize: PAGE_SIZE,
+    pollInterval: POLL_INTERVAL,
+    pollingEnabled: startingId === null,
     errorFallback: 'Không thể tải hàng đợi chờ khám.',
   })
 
@@ -83,6 +86,7 @@ export default function ConsultationQueuePage() {
 
           <p>
             Danh sách bệnh nhân đã hoàn tất đo sinh hiệu và đang chờ bác sĩ khám.
+            {' '}Tự động cập nhật mỗi 15 giây.
           </p>
         </div>
 

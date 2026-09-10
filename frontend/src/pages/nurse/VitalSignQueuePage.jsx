@@ -22,6 +22,7 @@ import { useSnackbar } from '../../utils/useSnackbar'
 
 
 const PAGE_SIZE = 8
+const POLL_INTERVAL = 15_000
 
 function VitalSignQueuePage() {
   const { user } = useAuth()
@@ -62,6 +63,8 @@ function VitalSignQueuePage() {
     fetchPage: fetchQueue,
     resetKey: search,
     pageSize: PAGE_SIZE,
+    pollInterval: POLL_INTERVAL,
+    pollingEnabled: !selectedEncounter && !isSubmitting,
     errorFallback: 'Không thể tải hàng đợi điều dưỡng.',
   })
 
@@ -143,6 +146,7 @@ function VitalSignQueuePage() {
 
           <p>
             Danh sách bệnh nhân đã được tiếp nhận và đang chờ đo sinh hiệu.
+            {' '}Tự động cập nhật mỗi 15 giây.
           </p>
         </div>
 
@@ -229,6 +233,7 @@ function VitalSignQueuePage() {
 
       {selectedEncounter && (
         <VitalSignModal
+          key={selectedEncounter.id}
           encounter={selectedEncounter}
           departments={departments}
           isLoadingDepartments={isLoadingDepartments}

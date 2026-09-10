@@ -22,7 +22,7 @@ class UserStaffProfileSerializer(serializers.ModelSerializer):
         extra_kwargs = {
             'employee_code': {'validators': []},
         }
-        read_only_fields = ['id']
+        read_only_fields = ['id', 'active']
 
 
 class UserSummarySerializer(serializers.ModelSerializer):

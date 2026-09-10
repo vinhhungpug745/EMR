@@ -1,3 +1,4 @@
+from django.core.exceptions import ObjectDoesNotExist
 from rest_framework import serializers
 
 from emrapi.models import StaffProfile
@@ -13,7 +14,7 @@ class ProfessionalProfileMixin:
             from .doctor_profile import DoctorProfileSerializer
             try:
                 profile = obj.doctor_profile
-            except obj.doctor_profile.RelatedObjectDoesNotExist:
+            except ObjectDoesNotExist:
                 return None
             return DoctorProfileSerializer(profile, context=self.context).data
 
@@ -21,7 +22,7 @@ class ProfessionalProfileMixin:
             from .nurse_profile import NurseProfileSerializer
             try:
                 profile = obj.nurse_profile
-            except obj.nurse_profile.RelatedObjectDoesNotExist:
+            except ObjectDoesNotExist:
                 return None
             return NurseProfileSerializer(profile, context=self.context).data
 
@@ -29,7 +30,7 @@ class ProfessionalProfileMixin:
             from .receptionist_profile import ReceptionistProfileSerializer
             try:
                 profile = obj.receptionist_profile
-            except obj.receptionist_profile.RelatedObjectDoesNotExist:
+            except ObjectDoesNotExist:
                 return None
             return ReceptionistProfileSerializer(profile, context=self.context).data
 
@@ -37,7 +38,7 @@ class ProfessionalProfileMixin:
             from .lab_technician_profile import LabTechnicianProfileSerializer
             try:
                 profile = obj.lab_technician_profile
-            except obj.lab_technician_profile.RelatedObjectDoesNotExist:
+            except ObjectDoesNotExist:
                 return None
             return LabTechnicianProfileSerializer(profile, context=self.context).data
 
@@ -50,7 +51,7 @@ class StaffProfileSummarySerializer(ModelCleanSerializer):
 
     class Meta:
         model = StaffProfile
-        fields = ['id', 'employee_code', 'full_name', 'role', 'role_display']
+        fields = ['id', 'employee_code', 'full_name', 'role', 'role_display', 'active']
         read_only_fields = fields
 
     def get_full_name(self, obj):
@@ -88,6 +89,19 @@ class StaffProfileSerializer(ProfessionalProfileMixin,ModelCleanSerializer):
             'created_at',
             'updated_at',
         ]
+
+    def validate_active(self, value):
+        request = self.context.get('request')
+        if (
+            value is False
+            and request
+            and self.instance
+            and self.instance.user_id == request.user.id
+        ):
+            raise serializers.ValidationError(
+                'Khong the khoa ho so nhan vien dang dang nhap.'
+            )
+        return value
 
 
 class MyProfileSerializer(ProfessionalProfileMixin,ModelCleanSerializer):
@@ -127,4 +141,3 @@ class MyProfileSerializer(ProfessionalProfileMixin,ModelCleanSerializer):
             'created_at',
             'updated_at',
         ]
-

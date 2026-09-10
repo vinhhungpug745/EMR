@@ -119,3 +119,103 @@ class RolePermissionTests(APITestCase):
 
         response = self.request_as(StaffProfile.Role.NURSE, 'get', '/vital-signs/')
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+
+class InactiveStaffAuthenticationTests(APITestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(
+            username='inactive_profile_login_test',
+            password='Strong-test-password-123',
+            first_name='Nhan vien',
+            last_name='Kiem thu',
+        )
+        self.staff = StaffProfile.objects.create(
+            user=self.user,
+            role=StaffProfile.Role.NURSE,
+            employee_code='INACTIVE-001',
+            active=False,
+        )
+
+    def test_inactive_staff_can_login_and_view_status_but_cannot_use_workflow(self):
+        login_response = self.client.post(
+            '/auth/login/',
+            {
+                'username': self.user.username,
+                'password': 'Strong-test-password-123',
+            },
+            format='json',
+        )
+
+        self.assertEqual(login_response.status_code, status.HTTP_200_OK)
+        self.assertFalse(login_response.data['user']['staff_active'])
+
+        self.client.credentials(
+            HTTP_AUTHORIZATION=f"Bearer {login_response.data['access']}"
+        )
+        profile_response = self.client.get('/auth/me/')
+        workflow_response = self.client.get('/vital-signs/')
+        own_profile_response = self.client.get('/my-profile/')
+
+        self.assertEqual(profile_response.status_code, status.HTTP_200_OK)
+        self.assertFalse(profile_response.data['user']['staff_active'])
+        self.assertEqual(workflow_response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(own_profile_response.status_code, status.HTTP_403_FORBIDDEN)
+
+
+class StaffProfileStatusManagementTests(APITestCase):
+    def setUp(self):
+        self.admin = User.objects.create_user(
+            username='profile_status_admin',
+            password='Strong-test-password-123',
+        )
+        self.admin_staff = StaffProfile.objects.create(
+            user=self.admin,
+            role=StaffProfile.Role.ADMIN,
+            employee_code='STATUS-ADMIN-001',
+        )
+        self.staff_user = User.objects.create_user(
+            username='profile_status_nurse',
+            password='Strong-test-password-123',
+        )
+        self.staff = StaffProfile.objects.create(
+            user=self.staff_user,
+            role=StaffProfile.Role.NURSE,
+            employee_code='STATUS-NURSE-001',
+        )
+        self.client.force_authenticate(self.admin)
+
+    def test_admin_can_lock_another_staff_profile(self):
+        response = self.client.patch(
+            f'/staff-profiles/{self.staff.id}/',
+            {'active': False},
+            format='json',
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertFalse(response.data['active'])
+        self.staff.refresh_from_db()
+        self.assertFalse(self.staff.active)
+
+    def test_admin_cannot_lock_own_staff_profile(self):
+        response = self.client.patch(
+            f'/staff-profiles/{self.admin_staff.id}/',
+            {'active': False},
+            format='json',
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.admin_staff.refresh_from_db()
+        self.assertTrue(self.admin_staff.active)
+
+    def test_account_lock_does_not_lock_staff_profile(self):
+        response = self.client.patch(
+            f'/users/{self.staff_user.id}/',
+            {'is_active': False},
+            format='json',
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.staff_user.refresh_from_db()
+        self.staff.refresh_from_db()
+        self.assertFalse(self.staff_user.is_active)
+        self.assertTrue(self.staff.active)

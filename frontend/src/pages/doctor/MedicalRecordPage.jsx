@@ -1,11 +1,8 @@
 import { useCallback, useState } from 'react'
 import {
-  CheckCircle2,
-  Clock3,
   FileText,
   RefreshCw,
   Search,
-  UsersRound,
 } from 'lucide-react'
 import { Navigate } from 'react-router-dom'
 
@@ -116,6 +113,7 @@ export default function MedicalRecordPage() {
     return (
       <div className="users-page">
         <MedicalRecordDetail
+          key={selectedRecord.id}
           medicalRecord={selectedRecord}
           onBack={() => {
             setSelectedRecord(null)
@@ -129,6 +127,7 @@ export default function MedicalRecordPage() {
 
         {editingRecord && (
           <MedicalRecordModal
+            key={editingRecord.id}
             error={formError}
             isSaving={isSaving}
             medicalRecord={editingRecord}
@@ -139,9 +138,6 @@ export default function MedicalRecordPage() {
       </div>
     )
   }
-
-  const recordsWithVisits = medicalRecords.filter((record) => record.latest_visit).length
-  const activeRecords = medicalRecords.filter((record) => record.active).length
 
   return (
     <div className="users-page">
@@ -222,6 +218,7 @@ export default function MedicalRecordPage() {
 
       {editingRecord && (
         <MedicalRecordModal
+          key={editingRecord.id}
           error={formError}
           isSaving={isSaving}
           medicalRecord={editingRecord}
@@ -230,24 +227,5 @@ export default function MedicalRecordPage() {
         />
       )}
     </div>
-  )
-}
-
-function StatCard({
-  icon,
-  label,
-  tone,
-  value,
-}) {
-  return (
-    <article className="medical-record-stat">
-      <span className={`medical-record-stat__icon medical-record-stat__icon--${tone}`}>
-        {icon}
-      </span>
-      <div>
-        <span>{label}</span>
-        <strong>{value}</strong>
-      </div>
-    </article>
   )
 }

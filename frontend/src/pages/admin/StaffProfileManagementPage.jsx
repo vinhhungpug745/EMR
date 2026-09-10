@@ -1,18 +1,22 @@
 import { useCallback, useState } from 'react'
 import {
   BadgeInfo,
+  LockKeyhole,
   RefreshCw,
   Search,
+  UnlockKeyhole,
   UserRound,
 } from 'lucide-react'
 import { Navigate } from 'react-router-dom'
 
-import { getStaffProfiles } from '../../api/staffProfiles'
+import { getStaffProfiles, updateStaffProfile } from '../../api/staffProfiles'
 import { useAuth } from '../../auth/useAuth'
 import ProfessionalProfileModal from '../../components/admin/ProfessionalProfileModal'
 import { getRoleLabel, USER_ROLE_OPTIONS } from '../../config/userOptions'
 import { PaginationFooter } from '../../components/common/PaginationFooter'
+import { Snackbar } from '../../components/common/Snackbar'
 import { usePaginatedResource } from '../../utils/usePaginatedResource'
+import { useStatusToggle } from '../../utils/useStatusToggle'
 
 const PAGE_SIZE = 8
 
@@ -31,6 +35,7 @@ export default function StaffProfileManagementPage() {
 
   const {
     items: staffProfiles,
+    setItems: setStaffProfiles,
     page,
     setPage,
     pageSize,
@@ -43,6 +48,31 @@ export default function StaffProfileManagementPage() {
     resetKey: `${roleFilter}|${search}`,
     pageSize: PAGE_SIZE,
     errorFallback: 'Không thể tải danh sách hồ sơ nhân viên.',
+  })
+
+  const {
+    snackbar,
+    updatingId: changingStaffId,
+    requestStatusChange,
+    cancelStatusChange,
+    confirmStatusChange,
+  } = useStatusToggle({
+    updateStatus: (staff, nextActive) => updateStaffProfile(staff.id, { active: nextActive }),
+    getName: (staff) => staff.full_name,
+    getConfirmMessage: (staff, nextActive) => (
+      `${nextActive ? 'Mở khóa' : 'Khóa'} hồ sơ nhân viên ${staff.full_name}?`
+    ),
+    getSuccessMessage: (staff, nextActive) => (
+      `Đã ${nextActive ? 'mở khóa' : 'khóa'} hồ sơ nhân viên ${staff.full_name}.`
+    ),
+    onSuccess: (staff, updatedStaff, nextActive) => {
+      setStaffProfiles((currentStaffProfiles) => currentStaffProfiles.map((item) => (
+        item.id === staff.id
+          ? { ...item, active: updatedStaff.active ?? nextActive }
+          : item
+      )))
+    },
+    errorFallback: 'Không thể cập nhật trạng thái hồ sơ nhân viên.',
   })
 
   if (currentUser.role !== 'admin') {
@@ -105,11 +135,19 @@ export default function StaffProfileManagementPage() {
       <section className="users-table-panel" aria-label="Danh sách hồ sơ nhân viên">
         <div className="users-table-scroll">
           <table className="users-table staff-profiles-table">
+            <colgroup>
+              <col style={{ width: '32%' }} />
+              <col style={{ width: '17%' }} />
+              <col style={{ width: '17%' }} />
+              <col style={{ width: '18%' }} />
+              <col style={{ width: '16%' }} />
+            </colgroup>
             <thead>
               <tr>
                 <th>Nhân viên</th>
                 <th>Mã nhân viên</th>
                 <th>Vai trò</th>
+                <th>Trạng thái</th>
                 <th><span className="sr-only">Thao tác</span></th>
               </tr>
             </thead>
@@ -120,7 +158,10 @@ export default function StaffProfileManagementPage() {
                 <StaffProfileRow
                   key={staff.id}
                   staff={staff}
+                  isCurrentStaff={staff.id === currentUser.staff_id}
+                  isChanging={changingStaffId === staff.id}
                   onEditProfessionalProfile={openProfessionalProfile}
+                  onStatusChange={requestStatusChange}
                 />
               ))}
             </tbody>
@@ -156,11 +197,23 @@ export default function StaffProfileManagementPage() {
           onSaved={loadStaffProfiles}
         />
       )}
+
+      <Snackbar
+        snackbar={snackbar}
+        onCancel={cancelStatusChange}
+        onConfirm={confirmStatusChange}
+      />
     </div>
   )
 }
 
-function StaffProfileRow({ staff, onEditProfessionalProfile }) {
+function StaffProfileRow({
+  staff,
+  isCurrentStaff,
+  isChanging,
+  onEditProfessionalProfile,
+  onStatusChange,
+}) {
   const name = staff.full_name || staff.user_detail?.full_name || 'Chưa cập nhật'
   const initials = getInitials(name)
   const canEditProfessionalProfile = staff.role !== 'admin'
@@ -183,6 +236,11 @@ function StaffProfileRow({ staff, onEditProfessionalProfile }) {
         </span>
       </td>
       <td>
+        <span className={`status-label status-label--${staff.active ? 'active' : 'inactive'}`}>
+          {staff.active ? 'Đang hoạt động' : 'Đã khóa'}
+        </span>
+      </td>
+      <td>
         <div className="users-table__actions">
           <button
             className="icon-button"
@@ -194,6 +252,20 @@ function StaffProfileRow({ staff, onEditProfessionalProfile }) {
           >
             <BadgeInfo size={17} />
           </button>
+          <button
+            className="icon-button"
+            type="button"
+            title={isCurrentStaff
+              ? 'Không thể khóa hồ sơ đang đăng nhập'
+              : staff.active ? 'Khóa hồ sơ nhân viên' : 'Mở khóa hồ sơ nhân viên'}
+            aria-label={staff.active ? `Khóa hồ sơ ${name}` : `Mở khóa hồ sơ ${name}`}
+            disabled={isCurrentStaff || isChanging}
+            onClick={() => onStatusChange(staff)}
+          >
+            {staff.active
+              ? <LockKeyhole size={17} />
+              : <UnlockKeyhole size={17} />}
+          </button>
         </div>
       </td>
     </tr>
@@ -203,7 +275,7 @@ function StaffProfileRow({ staff, onEditProfessionalProfile }) {
 function LoadingRows() {
   return Array.from({ length: 5 }, (_, index) => (
     <tr className="users-table__loading" key={index}>
-      {Array.from({ length: 4 }, (__, cellIndex) => (
+      {Array.from({ length: 5 }, (__, cellIndex) => (
         <td key={cellIndex}><span /></td>
       ))}
     </tr>

@@ -44,11 +44,6 @@
   min-width: 760px;
 }
 
-.staff-profiles-table th:first-child { width: 42%; }
-.staff-profiles-table th:nth-child(2) { width: 20%; }
-.staff-profiles-table th:nth-child(3) { width: 26%; }
-.staff-profiles-table th:last-child { width: 12%; }
-
 .user-management-table {
   min-width: 0;
 }

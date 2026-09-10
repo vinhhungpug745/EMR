@@ -19,6 +19,10 @@ class AuthenticatedUserSerializer(serializers.ModelSerializer):
         source='staff_profile.get_role_display',
         read_only=True,
     )
+    staff_active = serializers.BooleanField(
+        source='staff_profile.active',
+        read_only=True,
+    )
     gender = serializers.CharField(source='staff_profile.gender', read_only=True)
     department = DepartmentSummarySerializer(
         source='staff_profile.department',
@@ -36,6 +40,7 @@ class AuthenticatedUserSerializer(serializers.ModelSerializer):
             'employee_code',
             'role',
             'role_display',
+            'staff_active',
             'gender',
             'department',
         ]
@@ -60,12 +65,6 @@ class LoginSerializer(TokenObtainPairSerializer):
                 'Tai khoan chua duoc gan ho so nhan vien.',
                 code='missing_staff_profile',
             ) from exc
-
-        if not staff.active:
-            raise PermissionDenied(
-                'Ho so nhan vien da ngung hoat dong.',
-                code='inactive_staff_profile',
-            )
 
         data['user'] = AuthenticatedUserSerializer(self.user).data
         return data

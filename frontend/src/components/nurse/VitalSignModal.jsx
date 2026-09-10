@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import {
   Activity,
   HeartPulse,
@@ -34,19 +34,12 @@ function VitalSignModal({
   onDepartmentFocus,
   onSubmit,
 }) {
-  const [form, setForm] = useState(INITIAL_FORM)
-
-
-  useEffect(() => {
-    if (encounter) {
-      setForm({
-        ...INITIAL_FORM,
-        department: encounter.department
-          ? String(encounter.department)
-          : '',
-      })
-    }
-  }, [encounter])
+  const [form, setForm] = useState(() => ({
+    ...INITIAL_FORM,
+    department: encounter?.department
+      ? String(encounter.department)
+      : '',
+  }))
 
 
   if (!encounter) {

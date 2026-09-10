@@ -33,12 +33,6 @@ class CurrentUserView(APIView):
                 {'detail': 'Tai khoan chua duoc gan ho so nhan vien.'},
                 status=status.HTTP_403_FORBIDDEN,
             )
-        if not staff.active:
-            return Response(
-                {'detail': 'Ho so nhan vien da ngung hoat dong.'},
-                status=status.HTTP_403_FORBIDDEN,
-            )
-
         serializer = AuthenticatedUserSerializer(request.user)
         return Response({'user': serializer.data})
 

@@ -1,6 +1,5 @@
 from rest_framework import viewsets, filters,status
 from rest_framework.generics import RetrieveUpdateAPIView
-from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.decorators import action
 from django.shortcuts import get_object_or_404
@@ -12,7 +11,7 @@ from emrapi.serializers.nurse_profile import NurseProfileSerializer
 from emrapi.serializers.receptionist_profile import ReceptionistProfileSerializer
 from emrapi.serializers.lab_technician_profile import LabTechnicianProfileSerializer
 
-from emrapi.permission import IsEMRAdmin
+from emrapi.permission import IsAnyStaff, IsEMRAdmin
 
 PROFESSIONAL_PROFILE_MAP = {
     StaffProfile.Role.DOCTOR: {
@@ -40,7 +39,7 @@ PROFESSIONAL_PROFILE_MAP = {
 
 class MyProfileView(RetrieveUpdateAPIView):
     serializer_class = MyProfileSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAnyStaff]
 
     def get_object(self):
         return get_object_or_404(

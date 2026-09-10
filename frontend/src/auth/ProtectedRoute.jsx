@@ -1,6 +1,8 @@
 import { Navigate, Outlet, useLocation } from 'react-router-dom'
 
 import { LoadingScreen } from '../components/common/LoadingScreen'
+import { AccessDeniedPage } from '../pages/AccessDeniedPage'
+import { InactiveProfilePage } from '../pages/InactiveProfilePage'
 import { useAuth } from './useAuth'
 
 export function ProtectedRoute({ allowedRoles }) {
@@ -15,8 +17,12 @@ export function ProtectedRoute({ allowedRoles }) {
     return <Navigate to="/login" state={{ from: location }} replace />
   }
 
+  if (user.staff_active === false) {
+    return <InactiveProfilePage />
+  }
+
   if (allowedRoles && !allowedRoles.includes(user.role)) {
-    return <Navigate to="/app" replace />
+    return <AccessDeniedPage />
   }
 
   return <Outlet />

@@ -8,7 +8,7 @@ export function Brand({ compact = false }) {
       </span>
       <span className="brand__copy">
         <strong>EMR Care</strong>
-        {!compact && <small>Hồ sơ bệnh án ngoại trú</small>}
+        {!compact && <small>Hồ sơ bệnh án điện tử</small>}
       </span>
     </div>
   )

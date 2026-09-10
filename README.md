@@ -188,7 +188,7 @@ EMR/
 
 ## Giới hạn hiện tại
 
-- Hàng đợi được đọc từ database theo trạng thái và thời gian; chưa sử dụng WebSocket hoặc Server-Sent Events.
+- Ba hàng đợi được đọc từ database theo trạng thái, thứ tự thời gian và tự động cập nhật bằng polling mỗi 15 giây; chưa sử dụng WebSocket hoặc Server-Sent Events.
 - Môi trường demo phụ thuộc vào máy cá nhân chạy frontend, backend, MySQL và Cloudflare Tunnel.
 - Chưa có cổng bệnh nhân, đặt lịch online, viện phí, bảo hiểm, nội trú hoặc thanh toán.
 - Chưa tích hợp chữ ký số và chưa liên thông HIS, LIS hay nền tảng y tế quốc gia.

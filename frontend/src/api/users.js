@@ -58,8 +58,5 @@ export function updateUser(userId, userData) {
 export function changeUserStatus(userId, isActive) {
   return updateUser(userId, {
     is_active: isActive,
-    staff_profile: {
-      active: isActive,
-    },
   })
 }

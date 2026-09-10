@@ -10,6 +10,7 @@ import { LabTechnicianQueueTable } from '../../components/technician/LabTechnici
 import { usePaginatedResource } from '../../utils/usePaginatedResource'
 
 const PAGE_SIZE = 8
+const POLL_INTERVAL = 15_000
 
 const WORKLIST_CONFIG = {
   ordered: {
@@ -88,6 +89,8 @@ export default function LabTechnicianWorklistPage({ status }) {
     fetchPage: fetchOrders,
     resetKey: `${status}-${searchTerm}`,
     pageSize: PAGE_SIZE,
+    pollInterval: POLL_INTERVAL,
+    pollingEnabled: !selectedOrder && !isSaving,
     errorFallback: 'Không thể tải danh sách xét nghiệm.',
   })
 
@@ -158,7 +161,7 @@ export default function LabTechnicianWorklistPage({ status }) {
         <div>
           <p className="page-heading__context">Nhân viên xét nghiệm</p>
           <h1>{config.title}</h1>
-          <p>{config.description}</p>
+          <p>{config.description} Tự động cập nhật mỗi 15 giây.</p>
         </div>
 
         <button

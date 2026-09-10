@@ -10,6 +10,7 @@
 @import './components/snackbar.css';
 
 @import './features/auth.css';
+@import './features/inactive-profile.css';
 @import './features/catalog.css';
 @import './features/reception.css';
 @import './features/nurse.css';

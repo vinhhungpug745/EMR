@@ -1,4 +1,4 @@
-import { Bell, LogOut, Menu, Search, X } from 'lucide-react'
+import { Bell, LogOut, Menu, X } from 'lucide-react'
 import { useState } from 'react'
 import { NavLink, Outlet, useNavigate } from 'react-router-dom'
 

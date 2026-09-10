@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 
 import {
   Activity,
@@ -31,10 +31,6 @@ export function MedicalRecordDetail({medicalRecord,onBack,onEdit,}) {
     (total, visit) => total + (visit.encounters?.length || 0),
     0,
   )
-
-  useEffect(() => {
-    setSelectedVisitId(latestVisit?.id || null)
-  }, [latestVisit?.id])
 
   return (
     <div className="medical-record-detail">
@@ -117,7 +113,7 @@ export function MedicalRecordDetail({medicalRecord,onBack,onEdit,}) {
           )}
 
           <div className="medical-record-visit-list">
-            {visits.map((visit, index) => (
+            {visits.map((visit) => (
               <VisitRailItem
                 isActive={visit.id === selectedVisit?.id}
                 key={visit.id}

@@ -11,6 +11,7 @@ import { AuthContext } from './auth-context'
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null)
   const [isLoading, setIsLoading] = useState(true)
+  const authenticatedUserId = user?.id
 
   useEffect(() => {
     let isMounted = true
@@ -39,6 +40,30 @@ export function AuthProvider({ children }) {
       isMounted = false
     }
   }, [])
+
+  useEffect(() => {
+    if (!authenticatedUserId) return undefined
+
+    let isMounted = true
+
+    async function syncProfileStatus() {
+      try {
+        const data = await getCurrentUser()
+        if (isMounted) setUser(data.user)
+      } catch {
+        // A temporary status-check failure must not end the current session.
+      }
+    }
+
+    const intervalId = window.setInterval(syncProfileStatus, 15000)
+    window.addEventListener('focus', syncProfileStatus)
+
+    return () => {
+      isMounted = false
+      window.clearInterval(intervalId)
+      window.removeEventListener('focus', syncProfileStatus)
+    }
+  }, [authenticatedUserId])
 
   const login = useCallback(async (credentials) => {
     const data = await loginRequest(credentials)

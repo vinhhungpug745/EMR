@@ -50,7 +50,6 @@ export default function UserFormModal({
       employee_code: form.employee_code.trim(),
       phone: form.phone.trim() || null,
       gender: form.gender || null,
-      active: form.is_active,
     }
     if (!isEditing) staffProfile.role = form.role
 

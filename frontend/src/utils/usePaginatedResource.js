@@ -8,6 +8,8 @@ export function usePaginatedResource({
   resetKey = '',
   pageSize = DEFAULT_PAGE_SIZE,
   delay = DEFAULT_DELAY,
+  pollInterval = 0,
+  pollingEnabled = true,
   errorFallback = 'Không thể tải dữ liệu.',
 }) {
   const [items, setItems] = useState([])
@@ -20,8 +22,12 @@ export function usePaginatedResource({
   const [isLoading, setIsLoading] = useState(true)
   const [errorMessage, setErrorMessage] = useState('')
 
-  const loadItems = useCallback(async () => {
-    setIsLoading(true)
+  const loadItems = useCallback(async (options = {}) => {
+    const silent = options?.silent === true
+
+    if (!silent) {
+      setIsLoading(true)
+    }
     setErrorMessage('')
 
     try {
@@ -35,7 +41,9 @@ export function usePaginatedResource({
     } catch (error) {
       setErrorMessage(error.message || errorFallback)
     } finally {
-      setIsLoading(false)
+      if (!silent) {
+        setIsLoading(false)
+      }
     }
   }, [errorFallback, fetchPage, page, pageSize])
 
@@ -48,6 +56,18 @@ export function usePaginatedResource({
     const timer = window.setTimeout(loadItems, delay)
     return () => window.clearTimeout(timer)
   }, [delay, loadItems])
+
+  useEffect(() => {
+    if (!pollInterval || !pollingEnabled) return undefined
+
+    const timer = window.setInterval(() => {
+      if (document.visibilityState === 'visible') {
+        loadItems({ silent: true })
+      }
+    }, pollInterval)
+
+    return () => window.clearInterval(timer)
+  }, [loadItems, pollInterval, pollingEnabled])
 
   return {
     items,
