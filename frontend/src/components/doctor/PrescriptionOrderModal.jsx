@@ -1,6 +1,7 @@
 import { useCallback, useState } from 'react'
 import {
   CheckCircle2,
+  Pencil,
   Pill,
   RefreshCw,
   Search,
@@ -75,12 +76,14 @@ export default function PrescriptionOrderModal({
   onCancelError,
   onCancelled,
   onSubmitted,
+  onUpdated,
 }) {
   const [searchTerm, setSearchTerm] = useState('')
   const [items, setItems] = useState([])
   const [note, setNote] = useState('')
+  const [editingPrescriptionId, setEditingPrescriptionId] = useState(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [cancellingPrescriptionId, setCancellingPrescriptionId] = useState(null)
+  const [isCancellingPrescriptions, setIsCancellingPrescriptions] = useState(false)
   const [submitErrorMessage, setSubmitErrorMessage] = useState('')
 
   const activePrescriptions = existingPrescriptions.filter(
@@ -115,21 +118,28 @@ export default function PrescriptionOrderModal({
     errorFallback: 'Không thể tải danh mục thuốc.',
   })
 
-  const issuedItems = activePrescriptions.flatMap((prescription) => (
-    (prescription.items || []).map((item) => ({
-      key: `issued-${prescription.id}-${item.id}`,
-      type: 'issued',
-      prescriptionId: prescription.id,
-      prescriptionStatus: prescription.status_display || prescription.status || 'Đã kê',
-      medicationId: getMedicationId(item.medication),
-      medication: item.medication_detail || item.medication,
-      dosage: item.dosage,
-      frequency: item.frequency,
-      duration: item.duration,
-      quantity: item.quantity,
-      instruction: item.instruction,
-    }))
-  ))
+  const issuedItems = activePrescriptions
+    .filter((prescription) => prescription.id !== editingPrescriptionId)
+    .flatMap((prescription) => (
+      (prescription.items || []).map((item) => ({
+        key: `issued-${prescription.id}-${item.id}`,
+        type: 'issued',
+        prescriptionId: prescription.id,
+        prescriptionStatus: prescription.status_display || prescription.status || 'Đã kê',
+        medicationId: getMedicationId(item.medication),
+        medication: item.medication_detail || item.medication,
+        dosage: item.dosage,
+        frequency: item.frequency,
+        duration: item.duration,
+        quantity: item.quantity,
+        instruction: item.instruction,
+      }))
+    ))
+
+  const issuedMedicineCount = activePrescriptions.reduce(
+    (total, prescription) => total + (prescription.items?.length || 0),
+    0,
+  )
 
   const pendingItems = items.map((item) => ({
     key: `pending-${item.medication.id}`,
@@ -185,6 +195,25 @@ export default function PrescriptionOrderModal({
     ))
   }
 
+  function handleEditPrescription(prescription) {
+    if (items.length && editingPrescriptionId !== prescription.id) {
+      const shouldReplace = window.confirm('Bỏ các thay đổi đang nhập để sửa đơn thuốc này?')
+      if (!shouldReplace) return
+    }
+
+    setEditingPrescriptionId(prescription.id)
+    setItems((prescription.items || []).map((item) => ({
+      medication: item.medication_detail || item.medication,
+      dosage: item.dosage || '',
+      frequency: item.frequency || '',
+      duration: item.duration || '',
+      quantity: item.quantity ?? '1',
+      instruction: item.instruction || '',
+    })))
+    setNote(prescription.note || '')
+    setSubmitErrorMessage('')
+  }
+
   function validateItems() {
     if (!items.length) {
       return 'Vui lòng chọn ít nhất một thuốc.'
@@ -216,8 +245,7 @@ export default function PrescriptionOrderModal({
     setSubmitErrorMessage('')
 
     try {
-      const createdPrescription = await createPrescription({
-        encounter: encounterId,
+      const payload = {
         status: 'issued',
         note: note.trim(),
         items: items.map((item) => ({
@@ -228,47 +256,72 @@ export default function PrescriptionOrderModal({
           quantity: item.quantity,
           instruction: item.instruction.trim(),
         })),
-      })
+      }
+
+      const savedPrescription = editingPrescriptionId
+        ? await updatePrescription(editingPrescriptionId, payload)
+        : await createPrescription({ encounter: encounterId, ...payload })
 
       setItems([])
       setNote('')
-      onSubmitted(createdPrescription)
+      setEditingPrescriptionId(null)
+
+      if (editingPrescriptionId) {
+        onUpdated?.(savedPrescription)
+      } else {
+        onSubmitted(savedPrescription)
+      }
     } catch (error) {
       console.error(error)
       setSubmitErrorMessage(
-        error?.message || 'Không thể gửi đơn thuốc.',
+        error?.message || (editingPrescriptionId
+          ? 'Không thể cập nhật đơn thuốc.'
+          : 'Không thể gửi đơn thuốc.'),
       )
     } finally {
       setIsSubmitting(false)
     }
   }
 
-  async function handleCancelPrescription(prescriptionId) {
-    const shouldCancel = window.confirm('Hủy đơn thuốc này?')
+  async function handleCancelAllPrescriptions() {
+    const prescriptionCount = activePrescriptions.length
+    const medicineCount = issuedMedicineCount
+    const shouldCancel = window.confirm(
+      `Hủy toàn bộ ${medicineCount} thuốc trong ${prescriptionCount} đơn hiện tại để chuyển chuyên khoa?`,
+    )
 
     if (!shouldCancel) return
 
-    setCancellingPrescriptionId(prescriptionId)
+    setIsCancellingPrescriptions(true)
     setSubmitErrorMessage('')
 
     try {
-      const updatedPrescription = await updatePrescription(prescriptionId, {
-        status: 'cancelled',
-      })
+      const updatedPrescriptions = await Promise.all(
+        activePrescriptions.map((prescription) => updatePrescription(prescription.id, {
+          status: 'cancelled',
+        })),
+      )
 
-      onCancelled?.(updatedPrescription)
+      setEditingPrescriptionId(null)
+      setItems([])
+      setNote('')
+      onCancelled?.(updatedPrescriptions)
     } catch (error) {
       console.error(error)
-      const message = error?.message || 'Không thể hủy đơn thuốc.'
+      const message = error?.message || 'Không thể hủy toàn bộ đơn thuốc.'
       setSubmitErrorMessage(message)
       onCancelError?.(message)
     } finally {
-      setCancellingPrescriptionId(null)
+      setIsCancellingPrescriptions(false)
     }
   }
 
   return (
-    <div className="lab-order-backdrop" role="presentation" onMouseDown={onClose}>
+    <div
+      className="lab-order-backdrop"
+      role="presentation"
+      onMouseDown={isCancellingPrescriptions ? undefined : onClose}
+    >
       <section
         className="lab-order-modal prescription-order-modal"
         role="dialog"
@@ -291,7 +344,13 @@ export default function PrescriptionOrderModal({
             <span>{departmentName}</span>
           </div>
 
-          <button type="button" className="lab-order-modal__close" aria-label="Đóng" onClick={onClose}>
+          <button
+            type="button"
+            className="lab-order-modal__close"
+            aria-label="Đóng"
+            disabled={isCancellingPrescriptions}
+            onClick={onClose}
+          >
             <X size={18} />
           </button>
         </header>
@@ -373,13 +432,47 @@ export default function PrescriptionOrderModal({
               <div>
                 <strong>Đơn thuốc</strong>
                 <span>
-                  {items.length
+                  {editingPrescriptionId
+                    ? `${items.length} thuốc đang chỉnh sửa trong đơn #${editingPrescriptionId}`
+                    : items.length
                     ? `${items.length} thuốc đang kê`
                     : issuedItems.length
                       ? `${issuedItems.length} thuốc đã kê`
                       : 'Chưa chọn thuốc'}
                 </span>
               </div>
+
+              {activePrescriptions.length > 0 && (
+                <div className="prescription-order-actions">
+                  {activePrescriptions.map((prescription) => (
+                    <button
+                      key={prescription.id}
+                      type="button"
+                      className="prescription-edit-button"
+                      disabled={
+                        isSubmitting
+                        || isCancellingPrescriptions
+                        || editingPrescriptionId === prescription.id
+                      }
+                      onClick={() => handleEditPrescription(prescription)}
+                    >
+                      <Pencil size={15} />
+                      {editingPrescriptionId === prescription.id
+                        ? `Đang sửa đơn #${prescription.id}`
+                        : `Sửa đơn thuốc`}
+                    </button>
+                  ))}
+                  <button
+                    type="button"
+                    className="prescription-cancel-button"
+                    disabled={isSubmitting || isCancellingPrescriptions}
+                    onClick={handleCancelAllPrescriptions}
+                  >
+                    <Trash2 size={15} />
+                    {isCancellingPrescriptions ? 'Đang hủy...' : 'Hủy đơn thuốc'}
+                  </button>
+                </div>
+              )}
             </div>
 
             {displayedItems.length > 0 ? (
@@ -404,16 +497,7 @@ export default function PrescriptionOrderModal({
                         )}
                       </div>
 
-                      {isIssued ? (
-                        <button
-                          type="button"
-                          aria-label={`Hủy đơn thuốc ${item.prescriptionId}`}
-                          disabled={cancellingPrescriptionId === item.prescriptionId}
-                          onClick={() => handleCancelPrescription(item.prescriptionId)}
-                        >
-                          <Trash2 size={15} />
-                        </button>
-                      ) : (
+                      {!isIssued && (
                         <button
                           type="button"
                           aria-label={`Bỏ ${item.medication.name}`}
@@ -529,17 +613,24 @@ export default function PrescriptionOrderModal({
             </div>
           )}
 
-          <button type="button" className="exam-save-button" onClick={onClose}>
+          <button
+            type="button"
+            className="exam-save-button"
+            disabled={isSubmitting || isCancellingPrescriptions}
+            onClick={onClose}
+          >
             Hủy
           </button>
           <button
             type="button"
             className="exam-complete-button"
             onClick={handleSubmitPrescription}
-            disabled={!items.length || isSubmitting}
+            disabled={!items.length || isSubmitting || isCancellingPrescriptions}
           >
             <Send size={16} />
-            {isSubmitting ? 'Đang gửi...' : 'Gửi đơn thuốc'}
+            {isSubmitting
+              ? editingPrescriptionId ? 'Đang lưu...' : 'Đang gửi...'
+              : editingPrescriptionId ? 'Lưu thay đổi' : 'Gửi đơn thuốc'}
           </button>
         </footer>
       </section>

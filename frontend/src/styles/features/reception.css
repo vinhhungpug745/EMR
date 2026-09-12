@@ -334,6 +334,21 @@
   white-space: normal;
 }
 
+.visit-table__row {
+  cursor: pointer;
+  transition: background-color 160ms ease, box-shadow 160ms ease;
+}
+
+.visit-table__row:hover,
+.visit-table__row:focus-visible {
+  background: var(--blue-50);
+}
+
+.visit-table__row:focus-visible {
+  outline: none;
+  box-shadow: inset 3px 0 0 var(--blue-600);
+}
+
 .visit-code {
   display: inline-flex;
   align-items: center;

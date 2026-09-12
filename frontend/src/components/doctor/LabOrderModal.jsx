@@ -24,7 +24,9 @@ export default function LabOrderModal({
   encounterId,
   orderedLabTests,
   onClose,
+  onRefresh,
   onSubmitted,
+  isRefreshing = false,
 }) {
   const [activeUnit, setActiveUnit] = useState(ALL_UNITS)
   const [searchTerm, setSearchTerm] = useState('')
@@ -137,6 +139,9 @@ export default function LabOrderModal({
       labTestId: item.id,
       status: item.status,
       status_display: item.status_display,
+      result: item.result,
+      performed_at: item.performed_at,
+      performed_by: item.performed_by_detail?.full_name,
     })),
 
     ...pendingTests.filter(
@@ -266,6 +271,18 @@ export default function LabOrderModal({
                 <strong>Phiếu chỉ định</strong>
                 <span>{pendingTests.length ? `${pendingTests.length} xét nghiệm đã chọn` : 'Chưa chọn xét nghiệm'}</span>
               </div>
+
+              {onRefresh && (
+                <button
+                  type="button"
+                  className="lab-order-refresh-button"
+                  disabled={isRefreshing}
+                  onClick={onRefresh}
+                >
+                  <RefreshCw size={14} className={isRefreshing ? 'is-spinning' : ''} />
+                  {isRefreshing ? 'Đang cập nhật' : 'Cập nhật kết quả'}
+                </button>
+              )}
             </div>
 
             {displayedTests.length > 0 ? (
@@ -294,6 +311,16 @@ export default function LabOrderModal({
                           <span>
                             Trạng thái: {test.status_display || 'Đã chỉ định'}
                           </span>
+                        )}
+
+                        {test.ordered && test.status === 'completed' && (
+                          <div className="lab-order-result">
+                            <strong>Kết quả xét nghiệm</strong>
+                            <p>{test.result || 'Chưa nhập nội dung kết quả'}</p>
+                            {test.performed_by && (
+                              <span>Thực hiện bởi: {test.performed_by}</span>
+                            )}
+                          </div>
                         )}
                       </div>
 

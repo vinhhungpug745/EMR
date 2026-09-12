@@ -189,13 +189,12 @@
 
 .technician-patient-cell strong,
 .technician-test-cell strong {
-  overflow: hidden;
-
   color: var(--ink-900);
 
   font-size: 13px;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+  white-space: normal;
 }
 
 .technician-patient-cell small,
@@ -216,27 +215,28 @@
 }
 
 .technician-test-name strong {
-  display: -webkit-box;
-  overflow: hidden;
+  display: block;
   
   color: var(--ink-900);
 
   font-size: 13px;
   line-height: 1.35;
-
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
-  line-clamp: 2;
+  overflow-wrap: anywhere;
   
 }
 
-.technician-doctor-cell,
 .technician-time-cell,
 .lab-technician-table .users-table__code {
   overflow: hidden;
 
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.technician-doctor-cell {
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+  white-space: normal;
 }
 
 .technician-time-cell {

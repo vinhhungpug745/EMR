@@ -10,13 +10,13 @@ def get_request_staff(serializer):
 
     if not user or not user.is_authenticated:
         raise serializers.ValidationError(
-            {'detail': 'Khong xac dinh duoc nhan vien dang thao tac.'}
+            {'detail': 'Không xác định được nhân viên đang thao tác.'}
         )
 
     staff = getattr(user, 'staff_profile', None)
     if staff is None or not staff.active:
         raise serializers.ValidationError(
-            {'detail': 'Ho so nhan vien khong ton tai hoac da ngung hoat dong.'}
+            {'detail': 'Hồ sơ nhân viên không tồn tại hoặc đã ngừng hoạt động.'}
         )
     return staff
 

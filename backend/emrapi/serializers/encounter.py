@@ -1,7 +1,8 @@
+from django.db import transaction
 from django.utils import timezone
 from rest_framework import serializers
 
-from emrapi.models import Encounter, VitalSign
+from emrapi.models import Encounter, LabTest, Visit, VitalSign
 
 from .base import ModelCleanSerializer, get_request_staff
 from .department import DepartmentSummarySerializer
@@ -88,6 +89,7 @@ class EncounterSerializer(ModelCleanSerializer):
             'doctor_detail',
             'status_display',
             'latest_vital_sign',
+            'completed_at',
             'created_by',
             'created_by_detail',
             'created_at',
@@ -97,17 +99,52 @@ class EncounterSerializer(ModelCleanSerializer):
     def validate(self, attrs):
         status = attrs.get('status', getattr(self.instance, 'status', None))
         diagnosis = attrs.get('diagnosis', getattr(self.instance, 'diagnosis', None))
-        completed_at = attrs.get(
-            'completed_at',
-            getattr(self.instance, 'completed_at', None),
+        is_completing = (
+            status == Encounter.Status.COMPLETED
+            and self.instance is not None
+            and self.instance.status != Encounter.Status.COMPLETED
         )
 
-        if status == Encounter.Status.COMPLETED and not diagnosis:
-            raise serializers.ValidationError(
-                {'diagnosis': 'Lan kham hoan thanh phai co chan doan.'}
-            )
-        if status == Encounter.Status.COMPLETED and not completed_at:
+        is_requesting_vital_sign_recheck = (
+            status == Encounter.Status.VITALS_RECHECK
+            and self.instance is not None
+            and self.instance.status != Encounter.Status.VITALS_RECHECK
+        )
+
+        if (
+            is_requesting_vital_sign_recheck
+            and self.instance.status != Encounter.Status.IN_PROGRESS
+        ):
+            raise serializers.ValidationError({
+                'status': 'Chỉ được yêu cầu đo lại sinh hiệu khi lượt khám đang diễn ra.'
+            })
+
+        if is_completing and self.instance.status != Encounter.Status.IN_PROGRESS:
+            raise serializers.ValidationError({
+                'status': 'Chỉ được hoàn tất lượt khám đang diễn ra.'
+            })
+
+        if is_completing and not (diagnosis or '').strip():
+            raise serializers.ValidationError({
+                'diagnosis': 'Lần khám hoàn thành phải có chẩn đoán.'
+            })
+
+        if is_completing:
+            has_pending_lab_test = self.instance.lab_tests.filter(
+                active=True,
+                status__in=[LabTest.Status.ORDERED, LabTest.Status.PROCESSING],
+            ).exists()
+            if has_pending_lab_test:
+                raise serializers.ValidationError({
+                    'lab_tests': (
+                        'Cần hoàn tất hoặc hủy các xét nghiệm đang xử lý '
+                        'trước khi hoàn tất lượt khám.'
+                    )
+                })
+
+            attrs['diagnosis'] = diagnosis.strip()
             attrs['completed_at'] = timezone.now()
+
         return super().validate(attrs)
 
     def create(self, validated_data):
@@ -141,6 +178,7 @@ class EncounterSerializer(ModelCleanSerializer):
         }
 
 
+    @transaction.atomic
     def update(self,instance,validated_data):
         status = validated_data.get('status')
         if status == Encounter.Status.IN_PROGRESS:
@@ -167,7 +205,22 @@ class EncounterSerializer(ModelCleanSerializer):
 
             if not instance.doctor_id:
                 validated_data['doctor'] = doctor_profile
-        return super().update(instance,validated_data)
+        instance = super().update(instance,validated_data)
+
+        if instance.status == Encounter.Status.COMPLETED:
+            has_open_encounter = instance.visit.encounters.filter(
+                active=True,
+            ).exclude(
+                status__in=[Encounter.Status.COMPLETED, Encounter.Status.CANCELLED],
+            ).exists()
+
+            if not has_open_encounter:
+                visit = instance.visit
+                visit.status = Visit.Status.COMPLETED
+                visit.completed_at = instance.completed_at or timezone.now()
+                visit.save(update_fields=['status', 'completed_at', 'updated_at'])
+
+        return instance
 
 class ConsultationQueueSerializer(serializers.ModelSerializer):
     patient_name = serializers.CharField(source='visit.medical_record.patient.full_name',read_only=True,)

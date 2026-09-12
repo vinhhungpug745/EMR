@@ -665,6 +665,34 @@
   color: var(--ink-900);
 }
 
+.clinical-list__heading {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.lab-result {
+  margin-top: 4px;
+  padding: 9px 10px;
+  border: 1px solid #dbeafe;
+  border-radius: 8px;
+  background: #f8fbff;
+}
+
+.lab-result small {
+  color: var(--ink-500);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.lab-result p {
+  margin: 4px 0 0;
+  color: var(--ink-900);
+  line-height: 1.5;
+  white-space: pre-wrap;
+}
+
 .users-table tbody tr:last-child td {
   border-bottom: 0;
 }

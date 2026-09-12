@@ -2,11 +2,14 @@ import { useCallback, useState } from 'react'
 import { RefreshCw, Search } from 'lucide-react'
 import { Navigate } from 'react-router-dom'
 
-import { getVisits } from '../../api/visits'
+import { getVisit, getVisits, updateVisit } from '../../api/visits'
 import { useAuth } from '../../auth/useAuth'
 import { PaginationFooter } from '../../components/common/PaginationFooter'
+import { Snackbar } from '../../components/common/Snackbar'
+import { VisitFormModal } from '../../components/receptionist/VisitFormModal'
 import { VisitTable } from '../../components/receptionist/VisitTable'
 import { usePaginatedResource } from '../../utils/usePaginatedResource'
+import { useSnackbar } from '../../utils/useSnackbar'
 
 const PAGE_SIZE = 8
 
@@ -22,6 +25,11 @@ export default function VisitPage() {
   const { user } = useAuth()
   const [search, setSearch] = useState('')
   const [status, setStatus] = useState('')
+  const [editingVisit, setEditingVisit] = useState(null)
+  const [loadingVisitId, setLoadingVisitId] = useState(null)
+  const [isSaving, setIsSaving] = useState(false)
+  const [formError, setFormError] = useState(null)
+  const { snackbar, showSnackbar } = useSnackbar()
 
   const fetchVisits = useCallback(({ page, pageSize }) => getVisits({
     search,
@@ -49,6 +57,48 @@ export default function VisitPage() {
 
   if (user.role !== 'receptionist') {
     return <Navigate to="/app" replace />
+  }
+
+  async function openEditForm(visit) {
+    if (loadingVisitId !== null) return
+    setFormError(null)
+    setLoadingVisitId(visit.id)
+
+    try {
+      setEditingVisit(await getVisit(visit.id))
+    } catch (error) {
+      showSnackbar({
+        type: 'error',
+        message: error.message || 'Không thể tải chi tiết lần đến khám.',
+      })
+    } finally {
+      setLoadingVisitId(null)
+    }
+  }
+
+  function closeForm() {
+    if (isSaving) return
+    setFormError(null)
+    setEditingVisit(null)
+  }
+
+  async function handleUpdateVisit(formData) {
+    setIsSaving(true)
+    setFormError(null)
+
+    try {
+      const updatedVisit = await updateVisit(editingVisit.id, formData)
+      setEditingVisit(null)
+      await loadVisits()
+      showSnackbar({
+        type: 'success',
+        message: `Đã cập nhật lần đến khám ${updatedVisit.visit_number}.`,
+      })
+    } catch (error) {
+      setFormError(error)
+    } finally {
+      setIsSaving(false)
+    }
   }
 
   return (
@@ -100,6 +150,8 @@ export default function VisitPage() {
       <section className="users-table-panel visit-table-panel">
         <VisitTable
           isLoading={isLoading}
+          loadingVisitId={loadingVisitId}
+          onEdit={openEditForm}
           visits={visits}
         />
 
@@ -122,6 +174,18 @@ export default function VisitPage() {
           />
         )}
       </section>
+
+      <Snackbar snackbar={snackbar} />
+
+      {editingVisit && (
+        <VisitFormModal
+          error={formError}
+          initialVisit={editingVisit}
+          isSaving={isSaving}
+          onClose={closeForm}
+          onSubmit={handleUpdateVisit}
+        />
+      )}
     </div>
   )
 }

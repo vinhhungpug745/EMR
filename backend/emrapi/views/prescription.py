@@ -81,7 +81,7 @@ class PrescriptionViewSet(viewsets.ModelViewSet):
         doctor_profile = getattr(staff, 'doctor_profile', None)
 
         if staff.role != StaffProfile.Role.DOCTOR or not doctor_profile:
-            raise PermissionDenied('Chi bac si moi duoc lap don thuoc.')
+            raise PermissionDenied('Chỉ bác sĩ mới được lập đơn thuốc.')
 
         encounter = (
             Encounter.objects
@@ -92,17 +92,17 @@ class PrescriptionViewSet(viewsets.ModelViewSet):
 
         if not encounter or not encounter.active:
             raise ValidationError({
-                'encounter': 'Luot kham khong ton tai hoac da ngung hoat dong.'
+                'encounter': 'Lượt khám không tồn tại hoặc đã ngừng hoạt động.'
             })
 
         if encounter.doctor_id != doctor_profile.id:
             raise PermissionDenied(
-                'Bac si chi duoc ke don cho luot kham cua minh.'
+                'Bác sĩ chỉ được kê đơn cho lượt khám của mình.'
             )
 
         if encounter.status != Encounter.Status.IN_PROGRESS:
             raise ValidationError({
-                'encounter': 'Chi duoc ke don khi luot kham dang dien ra.'
+                'encounter': 'Chỉ được kê đơn khi lượt khám đang diễn ra.'
             })
 
         serializer.save()
@@ -114,23 +114,23 @@ class PrescriptionViewSet(viewsets.ModelViewSet):
         doctor_profile = getattr(staff, 'doctor_profile', None)
 
         if not instance.active:
-            raise ValidationError('Don thuoc nay da ngung hoat dong.')
+            raise ValidationError('Đơn thuốc này đã ngừng hoạt động.')
 
         if staff.role == StaffProfile.Role.ADMIN:
             serializer.save()
             return
 
         if staff.role != StaffProfile.Role.DOCTOR or not doctor_profile:
-            raise PermissionDenied('Chi bac si moi duoc cap nhat don thuoc.')
+            raise PermissionDenied('Chỉ bác sĩ mới được cập nhật đơn thuốc.')
 
         if instance.prescribed_by_id != doctor_profile.id:
             raise PermissionDenied(
-                'Bac si chi duoc cap nhat don thuoc cua minh.'
+                'Bác sĩ chỉ được cập nhật đơn thuốc của mình.'
             )
 
         if instance.status == Prescription.Status.CANCELLED:
             raise ValidationError({
-                'status': 'Don thuoc da huy khong the cap nhat.'
+                'status': 'Đơn thuốc đã hủy không thể cập nhật.'
             })
 
         serializer.save()

@@ -97,7 +97,7 @@ class EncounterViewSet(AuditTrailMixin, viewsets.ModelViewSet):
         doctor_profile = getattr(staff, 'doctor_profile', None)
 
         if staff.role != StaffProfile.Role.DOCTOR or not doctor_profile:
-            raise PermissionDenied('Chi bac si moi duoc chuyen kham chuyen khoa.')
+            raise PermissionDenied('Chỉ bác sĩ mới được chuyển khám chuyên khoa.')
 
         encounter = (
             Encounter.objects
@@ -109,25 +109,25 @@ class EncounterViewSet(AuditTrailMixin, viewsets.ModelViewSet):
 
         if encounter is None:
             raise ValidationError({
-                'encounter': 'Luot kham khong ton tai hoac da ngung hoat dong.'
+                'encounter': 'Lượt khám không tồn tại hoặc đã ngừng hoạt động.'
             })
 
         if encounter.doctor_id != doctor_profile.id:
-            raise PermissionDenied('Bac si chi duoc chuyen luot kham cua minh.')
+            raise PermissionDenied('Bác sĩ chỉ được chuyển lượt khám của mình.')
 
         if encounter.status != Encounter.Status.IN_PROGRESS:
             raise ValidationError({
-                'status': 'Chi duoc chuyen khoa khi luot kham dang dien ra.'
+                'status': 'Chỉ được chuyển khoa khi lượt khám đang diễn ra.'
             })
 
         if encounter.visit.status in [Visit.Status.COMPLETED, Visit.Status.CANCELLED]:
             raise ValidationError({
-                'visit': 'Lan den kham da hoan thanh hoac da huy.'
+                'visit': 'Lần đến khám đã hoàn thành hoặc đã hủy.'
             })
 
         if not (encounter.diagnosis or '').strip():
             raise ValidationError({
-                'diagnosis': 'Can ghi nhan nhan dinh ban dau truoc khi chuyen khoa.'
+                'diagnosis': 'Cần ghi nhận nhận định ban đầu trước khi chuyển khoa.'
             })
 
         department_id = request.data.get('department')
@@ -135,18 +135,18 @@ class EncounterViewSet(AuditTrailMixin, viewsets.ModelViewSet):
 
         if not reason:
             raise ValidationError({
-                'reason': 'Vui long nhap ly do chuyen khoa.'
+                'reason': 'Vui lòng nhập lý do chuyển khoa.'
             })
 
         department = Department.objects.filter(pk=department_id, active=True).first()
         if department is None:
             raise ValidationError({
-                'department': 'Khoa tiep nhan khong hoat dong hoac khong ton tai.'
+                'department': 'Khoa tiếp nhận không hoạt động hoặc không tồn tại.'
             })
 
         if encounter.department_id == department.id:
             raise ValidationError({
-                'department': 'Khoa tiep nhan khong duoc trung voi khoa hien tai.'
+                'department': 'Khoa tiếp nhận không được trùng với khoa hiện tại.'
             })
 
         has_issued_prescription = encounter.prescriptions.filter(
@@ -156,7 +156,7 @@ class EncounterViewSet(AuditTrailMixin, viewsets.ModelViewSet):
 
         if has_issued_prescription:
             raise ValidationError({
-                'prescriptions': 'Can huy don thuoc da phat hanh truoc khi chuyen khoa.'
+                'prescriptions': 'Cần hủy đơn thuốc đã kê trước khi chuyển khám chuyên khoa'
             })
 
         transfer_note = f'Chuyen kham chuyen khoa {department.name}: {reason}'

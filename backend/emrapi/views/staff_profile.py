@@ -109,7 +109,7 @@ class StaffProfileViewSet(viewsets.ModelViewSet):
         if request.method == 'POST':
             if profile is not None:
                 return Response(
-                    {'detail': 'Ho so nghe nghiep da ton tai.'},
+                    {'detail': 'Hồ sơ nghề nghiệp đã tồn tại.'},
                     status=status.HTTP_400_BAD_REQUEST,
                 )
 
@@ -123,7 +123,7 @@ class StaffProfileViewSet(viewsets.ModelViewSet):
 
         if profile is None:
             return Response(
-                {'detail': 'Ho so nghe nghiep chua ton tai.'},
+                {'detail': 'Hồ sơ nghề nghiệp chưa tồn tại.'},
                 status=status.HTTP_404_NOT_FOUND,
             )
 

@@ -283,8 +283,17 @@ function EncounterPanel({ encounter }) {
             <ul className="clinical-list">
               {encounter.lab_tests.map((test) => (
                 <li key={test.id}>
-                  <strong>{test.name}</strong>
-                  <span>{test.status_display}</span>
+                  <div className="clinical-list__heading">
+                    <strong>{test.name}</strong>
+                    <span>{test.status_display}</span>
+                  </div>
+
+                  {test.status === 'completed' && (
+                    <div className="lab-result">
+                      <small>Kết quả</small>
+                      <p>{test.result || 'Chưa nhập nội dung kết quả'}</p>
+                    </div>
+                  )}
                 </li>
               ))}
             </ul>

@@ -99,7 +99,7 @@ class StaffProfileSerializer(ProfessionalProfileMixin,ModelCleanSerializer):
             and self.instance.user_id == request.user.id
         ):
             raise serializers.ValidationError(
-                'Khong the khoa ho so nhan vien dang dang nhap.'
+                'Không thể khóa hồ sơ nhân viên đang đăng nhập.'
             )
         return value
 

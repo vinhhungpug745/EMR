@@ -48,7 +48,7 @@ def validate_lab_test_transition(instance, next_status):
 
     if next_status not in allowed_transitions.get(instance.status, []):
         raise ValidationError({
-            'status': 'Trang thai xet nghiem khong hop le.'
+            'status': 'Trạng thái xét nghiệm không hợp lệ.'
         })
 
 
@@ -148,7 +148,7 @@ class LabTestViewSet(AuditTrailMixin, viewsets.ModelViewSet):
         doctor_profile = getattr(staff, 'doctor_profile', None)
 
         if staff.role != StaffProfile.Role.DOCTOR or not doctor_profile:
-            raise PermissionDenied('Chi bac si moi duoc chi dinh xet nghiem.')
+            raise PermissionDenied('Chỉ bác sĩ mới được chỉ định xét nghiệm.')
 
         encounter = (
             Encounter.objects
@@ -159,17 +159,17 @@ class LabTestViewSet(AuditTrailMixin, viewsets.ModelViewSet):
 
         if not encounter or not encounter.active:
             raise ValidationError({
-                'encounter': 'Luot kham khong ton tai hoac da ngung hoat dong.'
+                'encounter': 'Lượt khám không tồn tại hoặc đã ngừng hoạt động.'
             })
 
         if encounter.doctor_id != doctor_profile.id:
             raise PermissionDenied(
-                'Bac si chi duoc chi dinh xet nghiem cho luot kham cua minh.'
+                'Bác sĩ chỉ được chỉ định xét nghiệm cho lượt khám của mình.'
             )
 
         if encounter.status != Encounter.Status.IN_PROGRESS:
             raise ValidationError({
-                'encounter': 'Chi duoc chi dinh xet nghiem khi luot kham dang dien ra.'
+                'encounter': 'Chỉ được chỉ định xét nghiệm khi lượt khám đang diễn ra.'
             })
 
         test_catalog = serializer.validated_data['test_catalog']
@@ -181,7 +181,7 @@ class LabTestViewSet(AuditTrailMixin, viewsets.ModelViewSet):
 
         if duplicated:
             raise ValidationError({
-                'test_catalog': 'Xet nghiem nay da duoc chi dinh trong luot kham.'
+                'test_catalog': 'Xét nghiệm này đã được chỉ định trong lượt khám.'
             })
 
         serializer.save()
@@ -192,12 +192,12 @@ class LabTestViewSet(AuditTrailMixin, viewsets.ModelViewSet):
         instance = serializer.instance
 
         if not instance.active:
-            raise ValidationError('Chi dinh xet nghiem nay da ngung hoat dong.')
+            raise ValidationError('Chỉ định xét nghiệm này đã ngừng hoạt động.')
 
         blocked_fields = {'encounter', 'test_catalog', 'ordered_by', 'performed_by'}
         if blocked_fields.intersection(serializer.validated_data):
             raise ValidationError(
-                'Khong duoc thay doi thong tin goc cua chi dinh xet nghiem.'
+                'Không được thay đổi thông tin gốc của chỉ định xét nghiệm.'
             )
 
         next_status = serializer.validated_data.get('status', instance.status)
@@ -211,19 +211,19 @@ class LabTestViewSet(AuditTrailMixin, viewsets.ModelViewSet):
             doctor_profile = getattr(staff, 'doctor_profile', None)
             if instance.ordered_by_id != getattr(doctor_profile, 'id', None):
                 raise PermissionDenied(
-                    'Bac si chi duoc cap nhat chi dinh xet nghiem cua minh.'
+                    'Bác sĩ chỉ được cập nhật chỉ định xét nghiệm của mình.'
                 )
             if set(serializer.validated_data.keys()) != {'status'}:
                 raise PermissionDenied(
-                    'Bac si chi duoc huy chi dinh xet nghiem.'
+                    'Bác sĩ chỉ được hủy chỉ định xét nghiệm.'
                 )
             if next_status != LabTest.Status.CANCELLED:
                 raise PermissionDenied(
-                    'Bac si chi duoc huy chi dinh xet nghiem.'
+                    'Bác sĩ chỉ được hủy chỉ định xét nghiệm.'
                 )
             if instance.status != LabTest.Status.ORDERED:
                 raise ValidationError({
-                    'status': 'Chi duoc huy xet nghiem dang cho tiep nhan.'
+                    'status': 'Chỉ được hủy xét nghiệm đang chờ tiếp nhận.'
                 })
             serializer.save()
             return
@@ -232,12 +232,12 @@ class LabTestViewSet(AuditTrailMixin, viewsets.ModelViewSet):
             categories = get_lab_categories_for_staff(staff)
             if instance.test_catalog.category not in categories:
                 raise PermissionDenied(
-                    'Ky thuat vien chi duoc xu ly xet nghiem thuoc don vi cua minh.'
+                    'Kỹ thuật viên chỉ được xử lý xét nghiệm thuộc đơn vị của mình.'
                 )
             serializer.save()
             return
 
-        raise PermissionDenied('Ban khong co quyen cap nhat chi dinh xet nghiem.')
+        raise PermissionDenied('Bạn không có quyền cập nhật chỉ định xét nghiệm.')
 
 class LabTechnicianQueueView(AuditTrailMixin, generics.ListAPIView):
     serializer_class = LabTestSerializer

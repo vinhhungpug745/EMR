@@ -57,7 +57,7 @@ class PatientSerializer(ModelCleanSerializer):
 
     def validate_date_of_birth(self, value):
         if value > timezone.localdate():
-            raise serializers.ValidationError('Ngay sinh khong duoc nam trong tuong lai.')
+            raise serializers.ValidationError('Ngày sinh không được nằm trong tương lai.')
         return value
 
     @transaction.atomic

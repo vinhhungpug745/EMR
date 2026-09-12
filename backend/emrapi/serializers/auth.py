@@ -62,7 +62,7 @@ class LoginSerializer(TokenObtainPairSerializer):
             staff = self.user.staff_profile
         except StaffProfile.DoesNotExist as exc:
             raise PermissionDenied(
-                'Tai khoan chua duoc gan ho so nhan vien.',
+                'Tài khoản chưa được gán hồ sơ nhân viên.',
                 code='missing_staff_profile',
             ) from exc
 

@@ -14,7 +14,11 @@ import {
   UserRound,
 } from 'lucide-react'
 
-import { getEncounter, transferEncounterSpecialty, updateEncounter } from '../../api/encounters'
+import {
+  getEncounter,
+  transferEncounterSpecialty,
+  updateEncounter,
+} from '../../api/encounters'
 import { getLabTests } from '../../api/labtests'
 import { getPrescriptions } from '../../api/prescriptions'
 import { Snackbar } from '../../components/common/Snackbar'
@@ -61,6 +65,7 @@ export default function EncounterExamPage() {
   const [isSaving, setIsSaving] = useState(false)
   const [errorMessage, setErrorMessage] = useState('')
   const [isLabOrderOpen, setIsLabOrderOpen] = useState(false)
+  const [isRefreshingLabTests, setIsRefreshingLabTests] = useState(false)
   const [isPrescriptionOrderOpen, setIsPrescriptionOrderOpen] = useState(false)
   const [isTransferOpen, setIsTransferOpen] = useState(false)
   const [transferErrorMessage, setTransferErrorMessage] = useState('')
@@ -156,7 +161,32 @@ export default function EncounterExamPage() {
       navigate('/app/encounters')
     } catch (error) {
       console.error(error)
-      setErrorMessage('Không thể hoàn tất lượt khám.')
+      setErrorMessage(
+        getApiErrorMessage(error) || 'Không thể hoàn tất lượt khám.',
+      )
+    } finally {
+      setIsSaving(false)
+    }
+  }
+
+  const handleRequestVitalSignRecheck = async () => {
+    setIsSaving(true)
+    setErrorMessage('')
+
+    try {
+      const updatedEncounter = await updateEncounter(encounterId, {
+        status: 'vitals_recheck',
+      })
+      setEncounter(updatedEncounter)
+      showSnackbar({
+        type: 'success',
+        message: 'Đã gửi yêu cầu đo lại sinh hiệu cho điều dưỡng.',
+      })
+    } catch (error) {
+      console.error(error)
+      setErrorMessage(
+        getApiErrorMessage(error) || 'Không thể gửi yêu cầu đo lại sinh hiệu.',
+      )
     } finally {
       setIsSaving(false)
     }
@@ -206,6 +236,32 @@ export default function EncounterExamPage() {
     setIsLabOrderOpen(false)
   }
 
+  const refreshOrderedLabTests = async () => {
+    setIsRefreshingLabTests(true)
+
+    try {
+      const data = await getLabTests({
+        encounter: encounterId,
+        ordering: '-ordered_at',
+      })
+
+      setOrderedLabTests(data.results ?? data ?? [])
+    } catch (error) {
+      console.error(error)
+      showSnackbar({
+        type: 'error',
+        message: 'Không thể cập nhật kết quả xét nghiệm.',
+      })
+    } finally {
+      setIsRefreshingLabTests(false)
+    }
+  }
+
+  const handleOpenLabOrder = () => {
+    setIsLabOrderOpen(true)
+    refreshOrderedLabTests()
+  }
+
   const handlePrescriptionSubmitted = (createdPrescription) => {
     setPrescriptions((current) => [
       createdPrescription,
@@ -218,7 +274,7 @@ export default function EncounterExamPage() {
     setIsPrescriptionOrderOpen(false)
   }
 
-  const handlePrescriptionCancelled = (updatedPrescription) => {
+  const handlePrescriptionUpdated = (updatedPrescription) => {
     setPrescriptions((current) => (
       current.map((prescription) => (
         prescription.id === updatedPrescription.id
@@ -228,7 +284,27 @@ export default function EncounterExamPage() {
     ))
     showSnackbar({
       type: 'success',
-      message: `Đã hủy đơn thuốc #${updatedPrescription.id}.`,
+      message: `Đã cập nhật đơn thuốc #${updatedPrescription.id}.`,
+    })
+    setIsPrescriptionOrderOpen(false)
+  }
+
+  const handlePrescriptionCancelled = (updatedPrescriptions) => {
+    const cancelledPrescriptions = Array.isArray(updatedPrescriptions)
+      ? updatedPrescriptions
+      : [updatedPrescriptions]
+    const cancelledById = new Map(
+      cancelledPrescriptions.map((prescription) => [prescription.id, prescription]),
+    )
+
+    setPrescriptions((current) => (
+      current.map((prescription) => (
+        cancelledById.get(prescription.id) || prescription
+      ))
+    ))
+    showSnackbar({
+      type: 'success',
+      message: `Đã hủy toàn bộ đơn thuốc (${cancelledPrescriptions.length} đơn).`,
     })
   }
 
@@ -419,7 +495,7 @@ export default function EncounterExamPage() {
             <button
               type="button"
               className="exam-action-button"
-              onClick={() => setIsLabOrderOpen(true)}
+              onClick={handleOpenLabOrder}
             >
               <span>
                 <Beaker size={17} />
@@ -455,6 +531,21 @@ export default function EncounterExamPage() {
               <MoveUpRight size={15} />
             </button>
 
+            <button
+              type="button"
+              className="exam-action-button"
+              disabled={isSaving || encounter.status === 'vitals_recheck'}
+              onClick={handleRequestVitalSignRecheck}
+            >
+              <span>
+                <HeartPulse size={17} />
+                {encounter.status === 'vitals_recheck'
+                  ? 'Đang chờ đo lại sinh hiệu'
+                  : 'Yêu cầu đo lại sinh hiệu'}
+              </span>
+              <MoveUpRight size={15} />
+            </button>
+
             {orderedLabTests.length > 0 && (
               <section className="exam-lab-summary" aria-label="Phiếu xét nghiệm đã chỉ định">
                 <div>
@@ -462,7 +553,7 @@ export default function EncounterExamPage() {
                   <span>{orderedLabTests.length} xét nghiệm </span>
                 </div>
 
-                <button type="button" onClick={() => setIsLabOrderOpen(true)}>
+                <button type="button" onClick={handleOpenLabOrder}>
                   Xem phiếu
                 </button>
               </section>
@@ -513,7 +604,9 @@ export default function EncounterExamPage() {
           departmentName={encounter.department_detail?.name || 'Chưa phân khoa'}
           encounterId={encounter.id}
           orderedLabTests={orderedLabTests}
+          isRefreshing={isRefreshingLabTests}
           onClose={() => setIsLabOrderOpen(false)}
+          onRefresh={refreshOrderedLabTests}
           onSubmitted={handleLabOrderSubmitted}
         />
       )}
@@ -529,6 +622,7 @@ export default function EncounterExamPage() {
           onCancelled={handlePrescriptionCancelled}
           onCancelError={handlePrescriptionCancelError}
           onSubmitted={handlePrescriptionSubmitted}
+          onUpdated={handlePrescriptionUpdated}
         />
       )}
 

@@ -77,7 +77,7 @@ class UserSerializer(serializers.ModelSerializer):
             if not attrs.get('password'):
                 errors['password'] = 'Mat khau la bat buoc khi tao tai khoan.'
             if not staff_data:
-                errors['staff_profile'] = 'Ho so nhan vien la bat buoc.'
+                errors['staff_profile'] = 'Hồ sơ nhân viên là bắt buộc.'
             if errors:
                 raise serializers.ValidationError(errors)
 
@@ -91,7 +91,7 @@ class UserSerializer(serializers.ModelSerializer):
             if duplicate_staff.exists():
                 raise serializers.ValidationError({
                     'staff_profile': {
-                        'employee_code': 'Ma nhan vien da ton tai.'
+                        'employee_code': 'Mã nhân viên đã tồn tại.'
                     }
                 })
 
@@ -105,8 +105,8 @@ class UserSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError({
                 'staff_profile': {
                     'role': (
-                        'Khong doi vai tro tai day vi co the lam sai lech '
-                        'ho so nghe nghiep hien co.'
+                        'Không đổi vai trò tại đây vì có thể làm sai lệch '
+                        'hồ sơ nghề nghiệp hiện có.'
                     )
                 }
             })

@@ -67,20 +67,24 @@ class VitalSignSerializer(ModelCleanSerializer):
         if self.instance:
             if encounter != self.instance.encounter:
                 raise serializers.ValidationError(
-                    'Khong duoc thay doi luot kham cua ban ghi sinh hieu.'
+                    'Không được thay đổi lượt khám của bản ghi sinh hiệu.'
                 )
 
             return encounter
 
         # Khi tạo mới, bệnh nhân phải đang chờ đo sinh hiệu
-        if encounter.status != Encounter.Status.CHECKED_IN:
+        can_record = encounter.status in [
+            Encounter.Status.CHECKED_IN,
+            Encounter.Status.VITALS_RECHECK,
+        ]
+        if not can_record:
             raise serializers.ValidationError(
-                'Benh nhan khong o trang thai cho do sinh hieu.'
+                'Bệnh nhân không ở trạng thái chờ đo hoặc đo lại sinh hiệu.'
             )
 
         if not encounter.active:
             raise serializers.ValidationError(
-                'Luot kham nay da ngung hoat dong.'
+                'Lượt khám này đã ngừng hoạt động.'
             )
 
         return encounter
@@ -105,7 +109,7 @@ class VitalSignSerializer(ModelCleanSerializer):
         ):
             raise serializers.ValidationError({
                 'systolic_bp':
-                    'Huyet ap tam thu phai lon hon huyet ap tam truong.'
+                    'Huyết áp tâm thu phải lớn hơn huyết áp tâm trương.'
             })
 
         return attrs
@@ -145,5 +149,6 @@ class VitalSignQueueSerializer(serializers.ModelSerializer):
             'status',
             'status_display',
             'arrived_at',
+            'updated_at',
         ]
         read_only_fields = fields

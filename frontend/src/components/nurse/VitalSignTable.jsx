@@ -1,4 +1,4 @@
-import { Eye, Thermometer } from 'lucide-react'
+import { Edit3, Thermometer } from 'lucide-react'
 
 import { formatVietnamDateTime } from '../../utils/dateTime'
 
@@ -17,7 +17,8 @@ function formatBloodPressure(item) {
 export default function VitalSignTable({
   vitalSigns,
   isLoading,
-  onView,
+  loadingVitalSignId,
+  onEdit,
 }) {
   return (
     <section className="users-table-panel" aria-label="Danh sách sinh hiệu">
@@ -50,7 +51,16 @@ export default function VitalSignTable({
               <tr
                 key={item.id}
                 className="users-table__clickable-row"
-                onClick={() => onView(item)}
+                tabIndex={0}
+                aria-label={`Cập nhật sinh hiệu của ${item.patient_name || 'bệnh nhân'}`}
+                aria-busy={loadingVitalSignId === item.id}
+                onClick={() => onEdit(item)}
+                onKeyDown={(event) => {
+                  if (event.key === 'Enter' || event.key === ' ') {
+                    event.preventDefault()
+                    onEdit(item)
+                  }
+                }}
               >
                 <td>
                   <div className="users-table__identity">
@@ -69,20 +79,25 @@ export default function VitalSignTable({
                   </span>
                 </td>
                 <td>{item.recorded_by_detail?.full_name || '—'}</td>
-                <td>{formatVietnamDateTime(item.created_at)}</td>
+                <td>
+                  {loadingVitalSignId === item.id
+                    ? 'Đang tải...'
+                    : formatVietnamDateTime(item.created_at)}
+                </td>
                 <td>
                   <div className="users-table__actions">
                     <button
                       className="icon-button"
                       type="button"
-                      title="Xem chi tiết"
-                      aria-label={`Xem chi tiết sinh hiệu ${item.patient_name || ''}`}
+                      title="Cập nhật sinh hiệu"
+                      aria-label={`Cập nhật sinh hiệu ${item.patient_name || ''}`}
+                      disabled={loadingVitalSignId === item.id}
                       onClick={(event) => {
                         event.stopPropagation()
-                        onView(item)
+                        onEdit(item)
                       }}
                     >
-                      <Eye size={17} />
+                      <Edit3 size={17} />
                     </button>
                   </div>
                 </td>

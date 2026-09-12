@@ -64,7 +64,7 @@ class LabTestSerializer(ModelCleanSerializer):
     def validate_test_catalog(self, value):
         if not value.active:
             raise serializers.ValidationError(
-                'Xet nghiem nay da ngung ap dung.'
+                'Xét nghiệm này đã ngừng áp dụng.'
             )
         return value
 
@@ -84,12 +84,12 @@ class LabTestSerializer(ModelCleanSerializer):
         if status == LabTest.Status.COMPLETED:
             errors = {}
             if not result:
-                errors['result'] = 'Xet nghiem hoan thanh phai co ket qua.'
+                errors['result'] = 'Xét nghiệm hoàn thành phải có kết quả.'
             if not performed_by:
                 staff = get_request_staff(self)
                 if getattr(staff, 'lab_technician_profile', None) is None:
                     errors['performed_by'] = (
-                        'Chi ky thuat vien moi duoc hoan thanh xet nghiem.'
+                        'Chỉ kỹ thuật viên mới được hoàn thành xét nghiệm.'
                     )
             if not performed_at:
                 attrs['performed_at'] = timezone.now()

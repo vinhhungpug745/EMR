@@ -13,6 +13,10 @@ export function getVisits(params = {}) {
   return apiRequest(`${endpoints.visits}${query.toString() ? `?${query}` : ''}`)
 }
 
+export function getVisit(id) {
+  return apiRequest(endpoints.visitDetail(id))
+}
+
 export function updateVisit(id, data) {
   return apiRequest(endpoints.visitDetail(id), {
     method: 'PATCH',

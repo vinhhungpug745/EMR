@@ -23,12 +23,12 @@ export function LabTechnicianQueueTable({
     <div className="users-table-scroll technician-table">
       <table className="users-table lab-technician-table">
         <colgroup>
-          <col style={{ width: '14%' }} />
-          <col style={{ width: '18%' }} />
+          <col style={{ width: '7%' }} />
           <col style={{ width: '25%' }} />
-          <col style={{ width: '12%' }} />
-          <col style={{ width: '14%' }} />
-          <col style={{ width: '17%' }} />
+          <col style={{ width: '25%' }} />
+          <col style={{ width: '10%' }} />
+          <col style={{ width: '22%' }} />
+          <col style={{ width: '20%' }} />
         </colgroup>
         <thead>
           <tr>
@@ -67,9 +67,6 @@ export function LabTechnicianQueueTable({
                     <strong>
                       {order.encounter_detail?.patient_name || 'Bệnh nhân chưa rõ'}
                     </strong>
-                    <small>
-                      {order.encounter_detail?.department_name || 'Chưa có khoa khám'}
-                    </small>
                   </span>
                 </span>
               </td>

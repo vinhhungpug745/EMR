@@ -120,8 +120,8 @@ class MedicalRecordSerializer(ModelCleanSerializer):
     def create(self, validated_data):
         raise serializers.ValidationError({
             'detail': (
-                'Ho so benh an duoc tao tu dong khi tao benh nhan, '
-                'khong duoc tao truc tiep.'
+                'Hồ sơ bệnh án được tạo tự động khi tạo bệnh nhân, '
+                'không được tạo trực tiếp.'
             )
         })
 

@@ -43,8 +43,10 @@ function VitalSignQueueTable({
 
   return (
     <div className="vital-sign-queue">
-      {patients.map((item, index) => (
-        <article
+      {patients.map((item, index) => {
+        const isRecheck = item.status === 'vitals_recheck'
+
+        return <article
           key={item.id}
           className="vital-sign-queue-card"
         >
@@ -66,7 +68,7 @@ function VitalSignQueueTable({
 
               <span className="nurse-status">
                 <Clock3 size={13} />
-                Chờ đo sinh hiệu
+                {isRecheck ? 'Chờ đo lại sinh hiệu' : 'Chờ đo sinh hiệu'}
               </span>
             </div>
 
@@ -83,15 +85,21 @@ function VitalSignQueueTable({
 
               <span>
                 <Clock3 size={14} />
-                {formatVietnamTime(item.arrived_at)}
+                {formatVietnamTime(
+                  isRecheck
+                    ? item.updated_at
+                    : item.arrived_at,
+                )}
               </span>
             </div>
 
             <div className="vital-sign-queue-card__reason">
-              <span>Lý do khám</span>
+              <span>{isRecheck ? 'Yêu cầu từ bác sĩ' : 'Lý do khám'}</span>
 
               <p>
-                {item.reason || item.chief_complaint || 'Không có thông tin'}
+                {isRecheck
+                  ? 'Đo lại các chỉ số sinh hiệu'
+                  : item.reason || item.chief_complaint || 'Không có thông tin'}
               </p>
             </div>
           </div>
@@ -102,10 +110,10 @@ function VitalSignQueueTable({
             onClick={() => onMeasure(item)}
           >
             <Stethoscope size={16} />
-            Đo sinh hiệu
+            {isRecheck ? 'Đo lại sinh hiệu' : 'Đo sinh hiệu'}
           </button>
         </article>
-      ))}
+      })}
     </div>
   )
 }

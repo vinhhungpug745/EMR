@@ -99,7 +99,7 @@ function VitalSignQueuePage() {
   function openVitalSignForm(encounter) {
     setFormError(null)
     setSelectedEncounter(encounter)
-    loadDepartmentsIfNeeded()
+    if (encounter.status !== 'vitals_recheck') loadDepartmentsIfNeeded()
   }
 
 

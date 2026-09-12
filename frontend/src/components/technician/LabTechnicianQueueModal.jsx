@@ -1,4 +1,4 @@
-import { Beaker, CheckCircle2, Clock3, FileText, UserRound, X } from 'lucide-react'
+import { Beaker, CheckCircle2, Clock3, FileText, Stethoscope, UserRound, X } from 'lucide-react'
 
 import { formatVietnamDateTime } from '../../utils/dateTime'
 
@@ -73,6 +73,20 @@ export function LabTechnicianQueueModal({
               </span>
               <strong>{order.test_catalog_detail?.category || 'Chưa phân loại'}</strong>
               <small>{order.test_catalog_detail?.code || 'Chưa có mã xét nghiệm'}</small>
+            </article>
+
+            <article>
+              <span>
+                <Stethoscope size={15} />
+                Bác sĩ chỉ định
+              </span>
+              <strong>{order.ordered_by_detail?.full_name || 'Chưa rõ bác sĩ'}</strong>
+              <small>
+                {[
+                  order.ordered_by_detail?.specialty,
+                  order.ordered_by_detail?.consultation_room,
+                ].filter(Boolean).join(' · ') || 'Chưa có thông tin chuyên môn'}
+              </small>
             </article>
 
             <article>

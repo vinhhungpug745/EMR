@@ -96,7 +96,7 @@ class PrescriptionSerializer(ModelCleanSerializer):
         medication_ids = [item['medication'].pk for item in items]
         if len(medication_ids) != len(set(medication_ids)):
             raise serializers.ValidationError(
-                'Mot thuoc khong duoc lap lai trong cung mot don.'
+                'Một thuốc không được lặp lại trong cùng một đơn.'
             )
         return items
 
@@ -110,7 +110,7 @@ class PrescriptionSerializer(ModelCleanSerializer):
             has_items = bool(items) if items is not None else existing_items
             if not has_items:
                 raise serializers.ValidationError(
-                    {'items': 'Don thuoc da ke phai co it nhat mot thuoc.'}
+                    {'items': 'Đơn thuốc đã kê phải có ít nhất một thuốc.'}
                 )
         return attrs
 
@@ -121,7 +121,7 @@ class PrescriptionSerializer(ModelCleanSerializer):
         doctor_profile = getattr(staff, 'doctor_profile', None)
         if doctor_profile is None:
             raise serializers.ValidationError({
-                'prescribed_by': 'Chi bac si moi duoc lap don thuoc.'
+                'prescribed_by': 'Chỉ bác sĩ mới được lập đơn thuốc.'
             })
         validated_data['prescribed_by'] = doctor_profile
         prescription = Prescription.objects.create(**validated_data)

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import {
   Activity,
   HeartPulse,
@@ -27,22 +27,34 @@ const INITIAL_FORM = {
 function VitalSignModal({
   departments = [],
   encounter,
+  initialVitalSign,
   isLoadingDepartments = false,
   isSubmitting,
   error,
+  mode = 'create',
   onClose,
   onDepartmentFocus,
   onSubmit,
 }) {
+  const isEdit = mode === 'edit'
+  const isRecheck = !isEdit && encounter?.status === 'vitals_recheck'
   const [form, setForm] = useState(() => ({
     ...INITIAL_FORM,
-    department: encounter?.department
+    ...normalizeVitalSign(initialVitalSign),
+    department: !isEdit && encounter?.department
       ? String(encounter.department)
       : '',
   }))
 
+  useEffect(() => {
+    const handleKeyDown = (event) => {
+      if (event.key === 'Escape' && !isSubmitting) onClose()
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [isSubmitting, onClose])
 
-  if (!encounter) {
+  if ((!isEdit && !encounter) || (isEdit && !initialVitalSign)) {
     return null
   }
 
@@ -67,10 +79,7 @@ function VitalSignModal({
   function handleSubmit(event) {
     event.preventDefault()
 
-    onSubmit({
-      encounter: encounter.id,
-      department: form.department,
-
+    const measurements = {
       temperature:
         toNumberOrNull(form.temperature),
 
@@ -91,9 +100,17 @@ function VitalSignModal({
 
       weight_kg:
         toNumberOrNull(form.weight_kg),
+    }
+
+    onSubmit(isEdit ? measurements : {
+      ...measurements,
+      encounter: encounter.id,
+      ...(isRecheck ? {} : { department: form.department }),
     })
   }
 
+  const patientName = isEdit ? initialVitalSign.patient_name : encounter.patient_name
+  const visitNumber = isEdit ? initialVitalSign.visit_number : encounter.visit_number
 
   return (
     <div
@@ -111,12 +128,12 @@ function VitalSignModal({
             </div>
 
             <div>
-              <h2>Đo sinh hiệu</h2>
+              <h2>{isEdit ? 'Cập nhật sinh hiệu' : isRecheck ? 'Đo lại sinh hiệu' : 'Đo sinh hiệu'}</h2>
 
               <p>
-                {encounter.patient_name}
+                {patientName}
                 {' · '}
-                {encounter.visit_number}
+                {visitNumber}
               </p>
             </div>
           </div>
@@ -140,30 +157,41 @@ function VitalSignModal({
                   Khoa khám
                 </span>
 
-                <select
-                  name="department"
-                  value={form.department}
-                  required
-                  disabled={isSubmitting || isLoadingDepartments}
-                  onChange={handleChange}
-                  onFocus={onDepartmentFocus}
-                  onMouseDown={onDepartmentFocus}
-                >
-                  <option value="">
-                    {isLoadingDepartments
-                      ? 'Đang tải khoa...'
-                      : 'Chọn khoa khám'}
-                  </option>
-
-                  {departments.map((department) => (
-                    <option
-                      key={department.id}
-                      value={department.id}
-                    >
-                      {department.name}
+                {isEdit || isRecheck ? (
+                  <div className="nurse-input-unit">
+                    <input
+                      value={isEdit
+                        ? initialVitalSign.encounter_detail?.department_name || 'Chưa phân khoa'
+                        : encounter.department_name || 'Chưa phân khoa'}
+                      readOnly
+                    />
+                  </div>
+                ) : (
+                  <select
+                    name="department"
+                    value={form.department}
+                    required
+                    disabled={isSubmitting || isLoadingDepartments}
+                    onChange={handleChange}
+                    onFocus={onDepartmentFocus}
+                    onMouseDown={onDepartmentFocus}
+                  >
+                    <option value="">
+                      {isLoadingDepartments
+                        ? 'Đang tải khoa...'
+                        : 'Chọn khoa khám'}
                     </option>
-                  ))}
-                </select>
+
+                    {departments.map((department) => (
+                      <option
+                        key={department.id}
+                        value={department.id}
+                      >
+                        {department.name}
+                      </option>
+                    ))}
+                  </select>
+                )}
               </label>
             </section>
 
@@ -258,14 +286,14 @@ function VitalSignModal({
 
           {error && (
             <div className="nurse-modal__error">
-              {error}
+              {getErrorMessage(error)}
             </div>
           )}
 
           <footer className="nurse-modal__footer">
             <button
               type="button"
-              className="button button--secondary"
+              className="secondary-button"
               onClick={onClose}
               disabled={isSubmitting}
             >
@@ -274,14 +302,14 @@ function VitalSignModal({
 
             <button
               type="submit"
-              className="button button--primary"
+              className="primary-button"
               disabled={isSubmitting}
             >
               <Save size={16} />
 
               {isSubmitting
                 ? 'Đang lưu...'
-                : 'Lưu sinh hiệu'}
+                : isEdit ? 'Lưu thay đổi' : 'Lưu sinh hiệu'}
             </button>
           </footer>
         </form>
@@ -318,3 +346,24 @@ function VitalField({
 
 
 export default VitalSignModal
+
+function normalizeVitalSign(vitalSign) {
+  if (!vitalSign) return {}
+
+  return Object.fromEntries(
+    Object.keys(INITIAL_FORM)
+      .filter((key) => key !== 'department')
+      .map((key) => [key, vitalSign[key] ?? '']),
+  )
+}
+
+function getErrorMessage(error) {
+  if (typeof error === 'string') return error
+  if (error?.data?.detail) return error.data.detail
+  if (error?.message) return error.message
+
+  const firstFieldError = Object.values(error?.data || {})[0]
+  if (Array.isArray(firstFieldError)) return firstFieldError[0]
+  if (typeof firstFieldError === 'string') return firstFieldError
+  return 'Không thể lưu sinh hiệu.'
+}

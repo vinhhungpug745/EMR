@@ -30,7 +30,7 @@ class CurrentUserView(APIView):
             staff = request.user.staff_profile
         except StaffProfile.DoesNotExist:
             return Response(
-                {'detail': 'Tai khoan chua duoc gan ho so nhan vien.'},
+                {'detail': 'Tài khoản chưa được gán hồ sơ nhân viên.'},
                 status=status.HTTP_403_FORBIDDEN,
             )
         serializer = AuthenticatedUserSerializer(request.user)

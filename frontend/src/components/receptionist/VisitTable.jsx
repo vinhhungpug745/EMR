@@ -7,7 +7,7 @@ const STATUS_LABELS = {
   cancelled: 'Đã hủy',
 }
 
-export function VisitTable({ isLoading, visits }) {
+export function VisitTable({ isLoading, loadingVisitId, onEdit, visits }) {
   return (
     <div className="visit-table-wrap">
       <table className="users-table catalog-table visit-table">
@@ -35,7 +35,20 @@ export function VisitTable({ isLoading, visits }) {
           )}
 
           {!isLoading && visits.map((visit) => (
-            <tr key={visit.id}>
+            <tr
+              className="visit-table__row"
+              key={visit.id}
+              tabIndex={0}
+              aria-label={`Cập nhật lần đến khám ${visit.visit_number || visit.id} của ${visit.patient_name || 'bệnh nhân'}`}
+              aria-busy={loadingVisitId === visit.id}
+              onClick={() => onEdit(visit)}
+              onKeyDown={(event) => {
+                if (event.key === 'Enter' || event.key === ' ') {
+                  event.preventDefault()
+                  onEdit(visit)
+                }
+              }}
+            >
               <td>
                 <span>{visit.visit_number || `#${visit.id}`}</span>
               </td>
@@ -49,7 +62,7 @@ export function VisitTable({ isLoading, visits }) {
               <td>
                 <span className="visit-reason">{visit.reason || 'Chưa ghi nhận'}</span>
               </td>
-              <td>{formatVietnamDateTime(visit.arrived_at)}</td>
+              <td>{loadingVisitId === visit.id ? 'Đang tải...' : formatVietnamDateTime(visit.arrived_at)}</td>
               <td>
                 <VisitStatus status={visit.status} />
               </td>

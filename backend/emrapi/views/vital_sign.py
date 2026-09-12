@@ -67,18 +67,17 @@ class VitalSignViewSet(viewsets.ModelViewSet):
 
         if not encounter.active:
             raise ValidationError({
-                'encounter': 'Luot kham nay da ngung hoat dong.'
+                'encounter': 'Lượt khám này đã ngừng hoạt động.'
             })
 
-        allowed_statuses = [
+        can_record = encounter.status in [
             Encounter.Status.CHECKED_IN,
-            Encounter.Status.VITALS_DONE,
-            Encounter.Status.IN_PROGRESS,
+            Encounter.Status.VITALS_RECHECK,
         ]
 
-        if encounter.status not in allowed_statuses:
+        if not can_record:
             raise ValidationError({
-                'encounter': 'Khong the ghi sinh hieu cho luot kham nay.'
+                'encounter': 'Không thể ghi sinh hiệu cho lượt khám này.'
             })
 
         if department and encounter.department_id != department.id:
@@ -86,25 +85,12 @@ class VitalSignViewSet(viewsets.ModelViewSet):
 
         vital_sign = serializer.save(encounter=encounter,)
 
-        # Chỉ lần đo đầu tiên mới chuyển bệnh nhân
-        # khỏi hàng đợi điều dưỡng
         if encounter.status == Encounter.Status.CHECKED_IN:
             encounter.status = Encounter.Status.VITALS_DONE
+        else:
+            encounter.status = Encounter.Status.IN_PROGRESS
 
-            encounter.save(
-                update_fields=[
-                    'department',
-                    'status',
-                    'updated_at',
-                ]
-            )
-        elif department:
-            encounter.save(
-                update_fields=[
-                    'department',
-                    'updated_at',
-                ]
-            )
+        encounter.save(update_fields=['department', 'status', 'updated_at'])
 
         return vital_sign
 
@@ -113,7 +99,7 @@ class VitalSignViewSet(viewsets.ModelViewSet):
         instance = serializer.instance
         if not instance.active:
             raise ValidationError(
-                'Ban ghi sinh hieu nay da ngung hoat dong.'
+                'Bản ghi sinh hiệu này đã ngừng hoạt động.'
             )
         serializer.save()
 
@@ -126,7 +112,10 @@ class VitalSignQueueView(generics.ListAPIView):
         Encounter.objects
         .filter(
             active=True,
-            status=Encounter.Status.CHECKED_IN,
+            status__in=[
+                Encounter.Status.CHECKED_IN,
+                Encounter.Status.VITALS_RECHECK,
+            ],
         )
         .select_related(
             'visit',

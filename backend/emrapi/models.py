@@ -115,7 +115,7 @@ class ReceptionistProfile(BaseModel):
 
     def clean(self):
         if self.staff_id and self.staff.role != StaffProfile.Role.RECEPTIONIST:
-            raise ValidationError({'staff': 'Nhan vien phai co vai tro tiep nhan.'})
+            raise ValidationError({'staff': 'Nhân viên phải có vai trò tiếp nhận.'})
 
 
 class NurseProfile(BaseModel):
@@ -139,7 +139,7 @@ class NurseProfile(BaseModel):
 
     def clean(self):
         if self.staff_id and self.staff.role != StaffProfile.Role.NURSE:
-            raise ValidationError({'staff': 'Nhan vien phai co vai tro dieu duong.'})
+            raise ValidationError({'staff': 'Nhân viên phải có vai trò điều dưỡng.'})
 
 
 class DoctorProfile(BaseModel):
@@ -167,7 +167,7 @@ class DoctorProfile(BaseModel):
 
     def clean(self):
         if self.staff_id and self.staff.role != StaffProfile.Role.DOCTOR:
-            raise ValidationError({'staff': 'Nhan vien phai co vai tro bac si.'})
+            raise ValidationError({'staff': 'Nhân viên phải có vai trò bác sĩ.'})
 
 
 class LabTechnicianProfile(BaseModel):
@@ -190,7 +190,7 @@ class LabTechnicianProfile(BaseModel):
 
     def clean(self):
         if self.staff_id and self.staff.role != StaffProfile.Role.LAB_TECHNICIAN:
-            raise ValidationError({'staff': 'Nhan vien phai co vai tro xet nghiem.'})
+            raise ValidationError({'staff': 'Nhân viên phải có vai trò xét nghiệm.'})
 
 
 class Visit(BaseModel):
@@ -250,9 +250,9 @@ class Visit(BaseModel):
         if self._state.adding and self.visit_type != self.VisitType.OUTPATIENT:
             raise ValidationError({'visit_type': 'Hệ thống chỉ tiếp nhận khám ngoại trú.'})
         if self.status == self.Status.COMPLETED and not self.completed_at:
-            raise ValidationError({'completed_at': 'Lan den da hoan thanh phai co thoi gian ket thuc.'})
+            raise ValidationError({'completed_at': 'Lần đến đã hoàn thành phải có thời gian kết thúc.'})
         if self.completed_at and self.completed_at < self.arrived_at:
-            raise ValidationError({'completed_at': 'Thoi gian ket thuc khong duoc truoc thoi gian tiep nhan.'})
+            raise ValidationError({'completed_at': 'Thời gian kết thúc không được trước thời gian tiếp nhận.'})
 
 
 class MedicalRecord(BaseModel):
@@ -281,6 +281,7 @@ class Encounter(BaseModel):
         CHECKED_IN = 'checked_in', 'Chờ đo sinh hiệu'
         VITALS_DONE = 'vitals_done', 'Đã đo sinh hiệu'
         IN_PROGRESS = 'in_progress', 'Đang khám'
+        VITALS_RECHECK = 'vitals_recheck', 'Chờ đo lại sinh hiệu'
         COMPLETED = 'completed', 'Hoàn thành'
         CANCELLED = 'cancelled', 'Đã hủy'
 
@@ -351,14 +352,14 @@ class Encounter(BaseModel):
     def clean(self):
         if self.parent_encounter_id:
             if self.pk and self.parent_encounter_id == self.pk:
-                raise ValidationError({'parent_encounter': 'Luot kham khong the tu chuyen den chinh no.'})
+                raise ValidationError({'parent_encounter': 'Lượt khám không thể tự chuyển đến chính nó.'})
             if self.visit_id and self.parent_encounter.visit_id != self.visit_id:
-                raise ValidationError({'parent_encounter': 'Luot kham chuyen khoa phai thuoc cung mot lan den.'})
+                raise ValidationError({'parent_encounter': 'Lượt khám chuyên khoa phải thuộc cùng một lần đến.'})
         if self.status == self.Status.COMPLETED:
             if not self.diagnosis:
-                raise ValidationError({'diagnosis': 'Luot kham hoan thanh phai co chan doan.'})
+                raise ValidationError({'diagnosis': 'Lượt khám hoàn thành phải có chẩn đoán.'})
             if not self.completed_at:
-                raise ValidationError({'completed_at': 'Luot kham hoan thanh phai co thoi gian ket thuc.'})
+                raise ValidationError({'completed_at': 'Lượt khám hoàn thành phải có thời gian kết thúc.'})
         if (
                 self.completed_at
                 and self.started_at
@@ -366,7 +367,7 @@ class Encounter(BaseModel):
         ):
             raise ValidationError({
                 'completed_at':
-                    'Thoi gian ket thuc khong duoc truoc thoi gian bat dau.'
+                    'Thời gian kết thúc không được trước thời gian bắt đầu.'
             })
 
 
