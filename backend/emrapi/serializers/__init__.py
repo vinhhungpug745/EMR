@@ -8,6 +8,7 @@ from .lab_test import LabTestSerializer
 from .lab_test_catalog import LabTestCatalogSerializer, LabTestCatalogSummarySerializer
 from .medical_attachment import MedicalAttachmentSerializer
 from .medical_record import MedicalRecordSerializer, MedicalRecordSummarySerializer
+from .medical_attachment import MedicalAttachmentSerializer
 from .medication import MedicationSerializer, MedicationSummarySerializer
 from .nurse_profile import NurseProfileSerializer
 from .patient import PatientSerializer, PatientSummarySerializer

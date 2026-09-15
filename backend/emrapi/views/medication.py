@@ -1,11 +1,12 @@
 from rest_framework import filters, viewsets
 
 from emrapi.models import Medication
+from emrapi.audit import AuditTrailMixin
 from emrapi.permission import IsAdminOrReadOnly
 from emrapi.serializers import MedicationSerializer, MedicationSummarySerializer
 
 
-class MedicationViewSet(viewsets.ModelViewSet):
+class MedicationViewSet(AuditTrailMixin, viewsets.ModelViewSet):
     queryset = Medication.objects.all()
     permission_classes = [IsAdminOrReadOnly]
     filter_backends = [filters.SearchFilter, filters.OrderingFilter]

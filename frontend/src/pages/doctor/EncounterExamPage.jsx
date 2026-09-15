@@ -23,6 +23,7 @@ import { getLabTests } from '../../api/labtests'
 import { getPrescriptions } from '../../api/prescriptions'
 import { Snackbar } from '../../components/common/Snackbar'
 import LabOrderModal from '../../components/doctor/LabOrderModal'
+import MedicalAttachmentPanel from '../../components/doctor/MedicalAttachmentPanel'
 import PrescriptionOrderModal from '../../components/doctor/PrescriptionOrderModal'
 import SpecialtyTransferModal from '../../components/doctor/SpecialtyTransferModal'
 import { formatVietnamDateTime } from '../../utils/dateTime'
@@ -596,6 +597,12 @@ export default function EncounterExamPage() {
           </section>
         </aside>
       </section>
+
+      <MedicalAttachmentPanel
+        encounterId={encounter.id}
+        readOnly={['completed', 'cancelled'].includes(encounter.status)}
+        onNotify={(type, message) => showSnackbar({ type, message })}
+      />
 
       {isLabOrderOpen && (
         <LabOrderModal

@@ -3,30 +3,13 @@ from rest_framework import filters, viewsets, generics
 from rest_framework.exceptions import PermissionDenied, ValidationError
 
 from emrapi.models import Encounter, LabTest, StaffProfile
+from emrapi.lab_access import get_lab_categories_for_staff
 from emrapi.permission import (
     IsDoctor,
     IsDoctorOrLabTechnicianOrAdmin,
     IsLabTechnicianOrAdmin,
 )
 from emrapi.serializers import LabTestSerializer
-
-
-LAB_UNIT_CATEGORY_ALIASES = {
-    'Huyết học': ['Huyết học', 'Đông máu'],
-    'Hóa sinh': ['Sinh hóa', 'Hóa sinh','Nội tiết','Nước tiểu'],
-    'Vi sinh': ['Vi sinh','Ký sinh trùng'],
-    'Miễn dịch': ['Miễn dịch'],
-}
-
-
-def get_lab_categories_for_staff(staff):
-    technician_profile = getattr(staff, 'lab_technician_profile', None)
-    laboratory_unit = getattr(technician_profile, 'laboratory_unit', None)
-
-    if not laboratory_unit:
-        return []
-
-    return LAB_UNIT_CATEGORY_ALIASES.get(laboratory_unit, [laboratory_unit])
 
 
 def validate_lab_test_transition(instance, next_status):

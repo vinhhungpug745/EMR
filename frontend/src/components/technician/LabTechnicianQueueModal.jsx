@@ -1,6 +1,7 @@
 import { Beaker, CheckCircle2, Clock3, FileText, Stethoscope, UserRound, X } from 'lucide-react'
 
 import { formatVietnamDateTime } from '../../utils/dateTime'
+import MedicalAttachmentPanel from '../doctor/MedicalAttachmentPanel'
 
 export function LabTechnicianQueueModal({
   order,
@@ -10,6 +11,7 @@ export function LabTechnicianQueueModal({
   onClose,
   onStart,
   onComplete,
+  onAttachmentNotify,
   isSaving,
 }) {
   if (!order) {
@@ -119,6 +121,15 @@ export function LabTechnicianQueueModal({
               <div className="technician-result-note">
                 Tiếp nhận chỉ định trước khi nhập kết quả xét nghiệm.
               </div>
+            )}
+
+            {!isOrdered && (
+              <MedicalAttachmentPanel
+                encounterId={order.encounter}
+                labTestId={order.id}
+                readOnly={!isProcessing}
+                onNotify={onAttachmentNotify}
+              />
             )}
 
             {!isOrdered && (

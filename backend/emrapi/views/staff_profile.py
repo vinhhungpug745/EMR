@@ -5,6 +5,7 @@ from rest_framework.decorators import action
 from django.shortcuts import get_object_or_404
 
 from emrapi.models import StaffProfile,DoctorProfile,NurseProfile,ReceptionistProfile,LabTechnicianProfile
+from emrapi.audit import AuditTrailMixin
 from emrapi.serializers.staff_profile import StaffProfileSerializer,StaffProfileSummarySerializer,MyProfileSerializer
 from emrapi.serializers.doctor_profile import DoctorProfileSerializer
 from emrapi.serializers.nurse_profile import NurseProfileSerializer
@@ -37,7 +38,7 @@ PROFESSIONAL_PROFILE_MAP = {
 }
 
 
-class MyProfileView(RetrieveUpdateAPIView):
+class MyProfileView(AuditTrailMixin, RetrieveUpdateAPIView):
     serializer_class = MyProfileSerializer
     permission_classes = [IsAnyStaff]
 
@@ -48,7 +49,7 @@ class MyProfileView(RetrieveUpdateAPIView):
         )
 
 
-class StaffProfileViewSet(viewsets.ModelViewSet):
+class StaffProfileViewSet(AuditTrailMixin, viewsets.ModelViewSet):
     queryset = StaffProfile.objects.select_related('user', 'department').all()
     permission_classes = [IsEMRAdmin]
     filter_backends = [filters.SearchFilter, filters.OrderingFilter]

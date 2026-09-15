@@ -13,6 +13,7 @@ from .views import (
     LoginView,
     LogoutView,
     MedicalRecordViewSet,
+    MedicalAttachmentViewSet,
     MedicationViewSet,
     MyProfileView,
     PrescriptionViewSet,
@@ -31,6 +32,7 @@ router.register(r'audit-logs', AuditLogViewSet, basename='audit-log')
 router.register(r'departments', DepartmentViewSet, basename='department')
 router.register(r'medications', MedicationViewSet, basename='medication')
 router.register(r'medical-records', MedicalRecordViewSet, basename='medical-record')
+router.register(r'medical-attachments', MedicalAttachmentViewSet, basename='medical-attachment')
 router.register(r'lab-test-catalogs', LabTestCatalogViewSet, basename='lab-test-catalog')
 router.register(r'lab-tests', LabTestViewSet, basename='lab-test')
 router.register(r'prescriptions', PrescriptionViewSet, basename='prescription')

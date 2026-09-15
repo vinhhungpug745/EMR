@@ -539,6 +539,13 @@ class LabTest(BaseModel):
 
 class MedicalAttachment(BaseModel):
     encounter = models.ForeignKey(Encounter, on_delete=models.CASCADE, related_name='attachments')
+    lab_test = models.ForeignKey(
+        LabTest,
+        on_delete=models.SET_NULL,
+        related_name='attachments',
+        blank=True,
+        null=True,
+    )
     uploaded_by = models.ForeignKey(
         StaffProfile,
         on_delete=models.SET_NULL,
@@ -555,6 +562,16 @@ class MedicalAttachment(BaseModel):
 
     def __str__(self):
         return self.title
+
+    def clean(self):
+        if (
+            self.lab_test_id
+            and self.encounter_id
+            and self.lab_test.encounter_id != self.encounter_id
+        ):
+            raise ValidationError({
+                'lab_test': 'Xét nghiệm và tệp đính kèm phải thuộc cùng một lượt khám.'
+            })
 
 
 class AuditLog(models.Model):

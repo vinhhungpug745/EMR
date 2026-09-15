@@ -4,6 +4,7 @@ from .lab_test_catalog import LabTestCatalogViewSet
 from .lab_test import LabTestViewSet,LabTechnicianQueueView
 from .medication import MedicationViewSet
 from .medical_record import MedicalRecordViewSet
+from .medical_attachment import MedicalAttachmentViewSet
 from .user import UserViewSet
 from .staff_profile import StaffProfileViewSet,MyProfileView
 from .patient import PatientViewSet
@@ -22,6 +23,7 @@ __all__ = [
     'LabTechnicianQueueView',
     'MedicationViewSet',
     'MedicalRecordViewSet',
+    'MedicalAttachmentViewSet',
     'UserViewSet',
     'StaffProfileViewSet',
     'MyProfileView',

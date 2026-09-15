@@ -6,15 +6,18 @@ import {
   CalendarClock,
   CalendarDays,
   ClipboardList,
+  Download,
   Edit3,
   FileText,
   FlaskConical,
   HeartPulse,
   Pill,
+  Paperclip,
   Stethoscope,
   UserRound,
 } from 'lucide-react'
 
+import { downloadMedicalAttachment } from '../../api/medicalAttachments'
 import { formatVietnamDate, formatVietnamDateTime } from '../../utils/dateTime'
 
 export function MedicalRecordDetail({medicalRecord,onBack,onEdit,}) {
@@ -318,6 +321,36 @@ function EncounterPanel({ encounter }) {
             </ul>
           )}
         </ClinicalBlock>
+
+        <ClinicalBlock
+          icon={<Paperclip size={16} />}
+          title="Tệp đính kèm"
+          empty="Chưa có tệp đính kèm"
+        >
+          {!!encounter.attachments?.length && (
+            <ul className="clinical-list clinical-attachment-list">
+              {encounter.attachments.map((attachment) => (
+                <li key={attachment.id}>
+                  <div>
+                    <strong>{attachment.title}</strong>
+                    <span>
+                      {[attachment.file_name || 'Tệp y tế', attachment.lab_test_name]
+                        .filter(Boolean)
+                        .join(' · ')}
+                    </span>
+                  </div>
+                  <button
+                    type="button"
+                    title="Tải tệp"
+                    onClick={() => handleAttachmentDownload(attachment)}
+                  >
+                    <Download size={15} />
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+        </ClinicalBlock>
       </div>
     </section>
   )
@@ -383,4 +416,21 @@ function formatVital(value, unit) {
 function formatBloodPressure(vitalSign) {
   if (!vitalSign?.systolic_bp || !vitalSign?.diastolic_bp) return '—'
   return `${vitalSign.systolic_bp}/${vitalSign.diastolic_bp} mmHg`
+}
+
+async function handleAttachmentDownload(attachment) {
+  try {
+    const blob = await downloadMedicalAttachment(attachment.id)
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = url
+    link.download = attachment.file_name || attachment.title
+    document.body.appendChild(link)
+    link.click()
+    link.remove()
+    URL.revokeObjectURL(url)
+  } catch (error) {
+    console.error(error)
+    window.alert('Không thể tải tệp đính kèm.')
+  }
 }

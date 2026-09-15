@@ -3,11 +3,12 @@ from rest_framework import filters, viewsets,generics
 from rest_framework.exceptions import ValidationError
 
 from emrapi.models import Encounter, VitalSign
+from emrapi.audit import AuditTrailMixin
 from emrapi.permission import IsNurseOrAdmin
 from emrapi.serializers import VitalSignSerializer, VitalSignQueueSerializer
 
 
-class VitalSignViewSet(viewsets.ModelViewSet):
+class VitalSignViewSet(AuditTrailMixin, viewsets.ModelViewSet):
     queryset = (
         VitalSign.objects
         .filter(active=True)
@@ -104,7 +105,7 @@ class VitalSignViewSet(viewsets.ModelViewSet):
         serializer.save()
 
 
-class VitalSignQueueView(generics.ListAPIView):
+class VitalSignQueueView(AuditTrailMixin, generics.ListAPIView):
     serializer_class = VitalSignQueueSerializer
     permission_classes = [IsNurseOrAdmin]
 

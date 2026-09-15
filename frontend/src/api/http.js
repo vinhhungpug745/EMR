@@ -53,7 +53,11 @@ export async function apiRequest(path, options = {}, canRetry = true) {
   const token = localStorage.getItem(ACCESS_TOKEN_KEY)
   const headers = new Headers(options.headers)
 
-  if (options.body && !headers.has('Content-Type')) {
+  if (
+    options.body
+    && !(options.body instanceof FormData)
+    && !headers.has('Content-Type')
+  ) {
     headers.set('Content-Type', 'application/json')
   }
   if (token) {
@@ -89,4 +93,33 @@ export async function apiRequest(path, options = {}, canRetry = true) {
   }
 
   return data
+}
+
+export async function apiFileRequest(path, options = {}, canRetry = true) {
+  const token = localStorage.getItem(ACCESS_TOKEN_KEY)
+  const headers = new Headers(options.headers)
+  if (token) {
+    headers.set('Authorization', `Bearer ${token}`)
+  }
+
+  const response = await fetch(`${API_BASE_URL}${path}`, {
+    ...options,
+    headers,
+  })
+
+  if (response.status === 401 && canRetry) {
+    await refreshAccessToken()
+    return apiFileRequest(path, options, false)
+  }
+
+  if (!response.ok) {
+    const data = await response.json().catch(() => ({}))
+    throw new ApiError(
+      data.detail || 'Không thể tải tệp. Vui lòng thử lại.',
+      response.status,
+      data,
+    )
+  }
+
+  return response.blob()
 }

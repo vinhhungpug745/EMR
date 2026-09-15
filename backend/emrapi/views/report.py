@@ -7,6 +7,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from emrapi.models import Department, Encounter, Visit
+from emrapi.audit import AuditTrailMixin
 from emrapi.permission import IsEMRAdmin
 
 
@@ -27,7 +28,7 @@ class ReportFilterSerializer(serializers.Serializer):
         return attrs
 
 
-class OutpatientReportView(APIView):
+class OutpatientReportView(AuditTrailMixin, APIView):
     permission_classes = [IsEMRAdmin]
 
     def get(self, request):

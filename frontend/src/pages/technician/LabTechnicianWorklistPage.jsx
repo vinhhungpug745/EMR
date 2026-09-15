@@ -28,11 +28,11 @@ const WORKLIST_CONFIG = {
   },
   processing: {
     title: 'Đang thực hiện',
-    description: 'Nhập kết quả cho các xét nghiệm đã tiếp nhận.',
+    description: 'Nhập nội dung và tải tệp kết quả cho các xét nghiệm đã tiếp nhận.',
     statLabel: 'Đang thực hiện',
     statHint: 'Các chỉ định đã được tiếp nhận và chờ kết quả',
     panelTitle: 'Danh sách đang thực hiện',
-    panelDescription: 'Mở từng chỉ định để nhập kết quả xét nghiệm.',
+    panelDescription: 'Mở từng chỉ định để nhập nội dung hoặc tải tệp kết quả xét nghiệm.',
     emptyTitle: 'Không có xét nghiệm đang thực hiện',
     emptyDescription: 'Các chỉ định sau khi tiếp nhận sẽ xuất hiện tại đây.',
     ordering: 'ordered_at',
@@ -244,6 +244,9 @@ export default function LabTechnicianWorklistPage({ status }) {
         onClose={handleCloseModal}
         onStart={handleStart}
         onComplete={handleComplete}
+        onAttachmentNotify={(type, message) => {
+          setErrorMessage(type === 'error' ? message : '')
+        }}
         isSaving={isSaving}
       />
     </div>

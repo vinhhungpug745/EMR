@@ -1,3 +1,5 @@
+from pathlib import Path
+
 from rest_framework import serializers
 
 from emrapi.models import MedicalRecord, Prescription
@@ -159,6 +161,7 @@ class MedicalRecordSerializer(ModelCleanSerializer):
             .exclude(status=Prescription.Status.CANCELLED)
             .order_by('-created_at')
         )
+        attachments = encounter.attachments.all().order_by('-created_at')
 
         return {
             'id': encounter.id,
@@ -233,4 +236,40 @@ class MedicalRecordSerializer(ModelCleanSerializer):
                 }
                 for prescription in prescriptions
             ],
+            'attachments': [
+                {
+                    'id': attachment.id,
+                    'title': attachment.title,
+                    'description': attachment.description,
+                    'file_name': (
+                        Path(attachment.file.name).name
+                        if attachment.file
+                        else None
+                    ),
+                    'file_size': self._get_attachment_size(attachment),
+                    'lab_test_id': attachment.lab_test_id,
+                    'lab_test_name': (
+                        attachment.lab_test.test_catalog.name
+                        if attachment.lab_test_id
+                        else None
+                    ),
+                    'uploaded_by_name': (
+                        attachment.uploaded_by.user.get_full_name()
+                        or attachment.uploaded_by.user.username
+                        if attachment.uploaded_by
+                        else None
+                    ),
+                    'created_at': attachment.created_at,
+                }
+                for attachment in attachments
+            ],
         }
+
+    @staticmethod
+    def _get_attachment_size(attachment):
+        if not attachment.file:
+            return None
+        try:
+            return attachment.file.size
+        except OSError:
+            return None

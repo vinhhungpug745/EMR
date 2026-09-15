@@ -16,6 +16,7 @@ RESOURCE_LABELS = {
     'Encounter': 'Lượt khám', 'MedicalRecord': 'Hồ sơ bệnh án',
     'VitalSign': 'Sinh hiệu', 'Medication': 'Thuốc', 'Prescription': 'Đơn thuốc',
     'LabTest': 'Xét nghiệm', 'LabTestCatalog': 'Danh mục xét nghiệm',
+    'MedicalAttachment': 'Tệp đính kèm y tế',
     'OutpatientReport': 'Báo cáo ngoại trú',
 }
 

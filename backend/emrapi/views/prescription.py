@@ -3,11 +3,12 @@ from rest_framework import filters, viewsets
 from rest_framework.exceptions import PermissionDenied, ValidationError
 
 from emrapi.models import Encounter, Prescription, StaffProfile
+from emrapi.audit import AuditTrailMixin
 from emrapi.permission import IsDoctor, IsDoctorOrAdmin
 from emrapi.serializers import PrescriptionSerializer
 
 
-class PrescriptionViewSet(viewsets.ModelViewSet):
+class PrescriptionViewSet(AuditTrailMixin, viewsets.ModelViewSet):
     serializer_class = PrescriptionSerializer
     filter_backends = [filters.SearchFilter, filters.OrderingFilter]
     search_fields = [

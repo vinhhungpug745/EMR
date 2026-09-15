@@ -1,11 +1,12 @@
 from rest_framework import viewsets,filters
 
 from emrapi.models import Visit
+from emrapi.audit import AuditTrailMixin
 from emrapi.permission import IsReceptionistOrAdmin
 from emrapi.serializers import VisitSerializer,VisitSummarySerializer
 
 
-class VisitViewSet(viewsets.ModelViewSet):
+class VisitViewSet(AuditTrailMixin, viewsets.ModelViewSet):
     queryset = Visit.objects.select_related('medical_record', 'medical_record__patient','created_by')
     permission_classes = [IsReceptionistOrAdmin]
     filter_backends = [filters.SearchFilter, filters.OrderingFilter]

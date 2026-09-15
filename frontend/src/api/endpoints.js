@@ -30,6 +30,9 @@ export const endpoints = {
 
   medicalRecords: '/medical-records/',
   medicalRecordDetail: (id) => `/medical-records/${id}/`,
+  medicalAttachments: '/medical-attachments/',
+  medicalAttachmentDetail: (id) => `/medical-attachments/${id}/`,
+  medicalAttachmentDownload: (id) => `/medical-attachments/${id}/download/`,
 
   visits: '/visits/',
   visitDetail: (id) => `/visits/${id}/`,

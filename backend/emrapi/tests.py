@@ -1,6 +1,9 @@
 from datetime import timedelta
+from tempfile import TemporaryDirectory
 
 from django.contrib.auth.models import User
+from django.core.files.uploadedfile import SimpleUploadedFile
+from django.test import override_settings
 from django.utils import timezone
 from rest_framework import status
 from rest_framework.test import APITestCase
@@ -12,6 +15,7 @@ from emrapi.models import (
     LabTechnicianProfile,
     LabTest,
     LabTestCatalog,
+    MedicalAttachment,
     MedicalRecord,
     Medication,
     Patient,
@@ -19,6 +23,7 @@ from emrapi.models import (
     StaffProfile,
     Visit,
     VitalSign,
+    AuditLog,
 )
 
 
@@ -733,3 +738,262 @@ class OutpatientWorkflowAPITests(APITestCase):
         history_encounter = history_response.data['visits'][0]['encounters'][0]
         self.assertEqual(history_encounter['id'], self.encounter.id)
         self.assertEqual(history_encounter['diagnosis'], 'Viêm họng cấp')
+
+
+class MedicalAttachmentAndAuditTests(APITestCase):
+    def setUp(self):
+        self.media_directory = TemporaryDirectory()
+        self.settings_override = override_settings(
+            MEDIA_ROOT=self.media_directory.name,
+        )
+        self.settings_override.enable()
+        self.addCleanup(self.settings_override.disable)
+        self.addCleanup(self.media_directory.cleanup)
+
+        self.department = Department.objects.create(name='Khoa tệp kiểm thử')
+        self.doctor_user = User.objects.create_user(username='attachment_doctor')
+        self.doctor_staff = StaffProfile.objects.create(
+            user=self.doctor_user,
+            role=StaffProfile.Role.DOCTOR,
+            employee_code='ATT-DOC-001',
+            department=self.department,
+        )
+        self.doctor = DoctorProfile.objects.create(
+            staff=self.doctor_staff,
+            specialty='Nội khoa',
+            license_number='ATT-LICENSE-001',
+        )
+        self.lab_user = User.objects.create_user(username='attachment_lab_technician')
+        self.lab_staff = StaffProfile.objects.create(
+            user=self.lab_user,
+            role=StaffProfile.Role.LAB_TECHNICIAN,
+            employee_code='ATT-LAB-001',
+        )
+        self.lab_technician = LabTechnicianProfile.objects.create(
+            staff=self.lab_staff,
+            laboratory_unit='Huyết học',
+            certification_number='ATT-LAB-CERT-001',
+        )
+        self.nurse_user = User.objects.create_user(username='attachment_nurse')
+        StaffProfile.objects.create(
+            user=self.nurse_user,
+            role=StaffProfile.Role.NURSE,
+            employee_code='ATT-NUR-001',
+            department=self.department,
+        )
+        self.receptionist_user = User.objects.create_user(username='audit_receptionist')
+        self.receptionist_staff = StaffProfile.objects.create(
+            user=self.receptionist_user,
+            role=StaffProfile.Role.RECEPTIONIST,
+            employee_code='ATT-REC-001',
+        )
+        self.patient = Patient.objects.create(
+            full_name='Bệnh nhân có tệp',
+            date_of_birth='1992-04-05',
+        )
+        self.medical_record = MedicalRecord.objects.create(
+            patient=self.patient,
+            record_number='EMR-ATT-001',
+            created_by=self.receptionist_staff,
+        )
+        self.visit = Visit.objects.create(
+            medical_record=self.medical_record,
+            arrived_at=timezone.now(),
+            reason='Khám có tài liệu',
+            created_by=self.receptionist_staff,
+        )
+        self.encounter = Encounter.objects.create(
+            visit=self.visit,
+            department=self.department,
+            doctor=self.doctor,
+            status=Encounter.Status.IN_PROGRESS,
+            chief_complaint='Đau đầu',
+            created_by=self.receptionist_staff,
+        )
+        self.lab_catalog = LabTestCatalog.objects.create(
+            code='ATT-CBC',
+            name='Công thức máu cho tệp',
+            category='Huyết học',
+            specimen_type='Máu',
+        )
+        self.lab_test = LabTest.objects.create(
+            encounter=self.encounter,
+            test_catalog=self.lab_catalog,
+            ordered_by=self.doctor,
+            performed_by=self.lab_technician,
+            status=LabTest.Status.PROCESSING,
+        )
+
+    def _upload(self, name='ket-qua.pdf', content=b'%PDF-1.4 test document'):
+        self.client.force_authenticate(self.doctor_user)
+        return self.client.post(
+            '/medical-attachments/',
+            {
+                'encounter': self.encounter.id,
+                'title': 'Kết quả chẩn đoán hình ảnh',
+                'description': 'Tệp dùng cho kiểm thử tích hợp',
+                'file': SimpleUploadedFile(
+                    name,
+                    content,
+                    content_type='application/pdf',
+                ),
+            },
+            format='multipart',
+        )
+
+    def _upload_lab_attachment(self, lab_test=None, name='anh-xet-nghiem.jpg'):
+        self.client.force_authenticate(self.lab_user)
+        selected_test = lab_test or self.lab_test
+        return self.client.post(
+            '/medical-attachments/',
+            {
+                'encounter': selected_test.encounter_id,
+                'lab_test': selected_test.id,
+                'title': 'Ảnh kết quả xét nghiệm',
+                'file': SimpleUploadedFile(
+                    name,
+                    b'jpeg test image',
+                    content_type='image/jpeg',
+                ),
+            },
+            format='multipart',
+        )
+
+    def test_doctor_can_upload_download_and_see_attachment_in_history(self):
+        upload_response = self._upload()
+        self.assertEqual(upload_response.status_code, status.HTTP_201_CREATED)
+        self.assertNotIn('file', upload_response.data)
+        self.assertEqual(upload_response.data['file_name'], 'ket-qua.pdf')
+        self.assertTrue(upload_response.data['active'], upload_response.data)
+
+        attachment_id = upload_response.data['id']
+        self.assertTrue(
+            MedicalAttachment.objects.filter(pk=attachment_id).exists(),
+            upload_response.data,
+        )
+        list_response = self.client.get('/medical-attachments/')
+        self.assertEqual(list_response.status_code, status.HTTP_200_OK)
+        listed = list_response.data.get('results', list_response.data)
+        self.assertIn(attachment_id, [item['id'] for item in listed])
+        download_response = self.client.get(
+            f'/medical-attachments/{attachment_id}/download/'
+        )
+        self.assertEqual(download_response.status_code, status.HTTP_200_OK)
+        self.assertEqual(
+            b''.join(download_response.streaming_content),
+            b'%PDF-1.4 test document',
+        )
+
+        history_response = self.client.get(
+            f'/medical-records/{self.medical_record.id}/'
+        )
+        self.assertEqual(history_response.status_code, status.HTTP_200_OK)
+        attachments = history_response.data['visits'][0]['encounters'][0]['attachments']
+        self.assertEqual(attachments[0]['id'], attachment_id)
+        self.assertEqual(attachments[0]['file_name'], 'ket-qua.pdf')
+
+        self.assertTrue(AuditLog.objects.filter(
+            actor=self.doctor_user,
+            action=AuditLog.Action.CREATE,
+            resource_type='MedicalAttachment',
+            resource_id=str(attachment_id),
+        ).exists())
+        self.assertTrue(AuditLog.objects.filter(
+            actor=self.doctor_user,
+            action=AuditLog.Action.VIEW,
+            resource_type='MedicalAttachment',
+            resource_id=str(attachment_id),
+        ).exists())
+
+    def test_attachment_rejects_invalid_extension_and_unrelated_role(self):
+        invalid_response = self._upload(name='chuong-trinh.exe', content=b'MZ')
+        self.assertEqual(invalid_response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn('file', invalid_response.data)
+        self.assertFalse(MedicalAttachment.objects.exists())
+
+        self.client.force_authenticate(self.nurse_user)
+        forbidden_response = self.client.get('/medical-attachments/')
+        self.assertEqual(forbidden_response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_lab_technician_uploads_file_for_processing_test(self):
+        response = self._upload_lab_attachment()
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.data['encounter'], self.encounter.id)
+        self.assertEqual(response.data['lab_test'], self.lab_test.id)
+        self.assertEqual(
+            response.data['lab_test_detail']['name'],
+            self.lab_catalog.name,
+        )
+        attachment = MedicalAttachment.objects.get(pk=response.data['id'])
+        self.assertEqual(attachment.uploaded_by, self.lab_staff)
+        self.assertEqual(attachment.lab_test, self.lab_test)
+
+        list_response = self.client.get(
+            f'/medical-attachments/?lab_test={self.lab_test.id}'
+        )
+        self.assertEqual(list_response.status_code, status.HTTP_200_OK)
+        listed = list_response.data.get('results', list_response.data)
+        self.assertEqual([item['id'] for item in listed], [attachment.id])
+
+    def test_lab_attachment_is_scoped_and_locked_after_completion(self):
+        other_catalog = LabTestCatalog.objects.create(
+            code='ATT-BIO',
+            name='Sinh hóa ngoài đơn vị',
+            category='Sinh hóa',
+            specimen_type='Máu',
+        )
+        other_test = LabTest.objects.create(
+            encounter=self.encounter,
+            test_catalog=other_catalog,
+            ordered_by=self.doctor,
+            status=LabTest.Status.PROCESSING,
+        )
+        forbidden_response = self._upload_lab_attachment(lab_test=other_test)
+        self.assertEqual(forbidden_response.status_code, status.HTTP_403_FORBIDDEN)
+
+        upload_response = self._upload_lab_attachment()
+        attachment_id = upload_response.data['id']
+        self.lab_test.status = LabTest.Status.COMPLETED
+        self.lab_test.result = 'Kết quả đã chốt'
+        self.lab_test.save(update_fields=['status', 'result', 'updated_at'])
+
+        create_response = self._upload_lab_attachment(name='bo-sung.jpg')
+        delete_response = self.client.delete(
+            f'/medical-attachments/{attachment_id}/'
+        )
+        self.assertEqual(create_response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(delete_response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertTrue(MedicalAttachment.objects.filter(pk=attachment_id).exists())
+
+    def test_completed_encounter_attachment_is_read_only_for_doctor(self):
+        upload_response = self._upload()
+        attachment_id = upload_response.data['id']
+        self.encounter.status = Encounter.Status.COMPLETED
+        self.encounter.diagnosis = 'Đã có kết luận'
+        self.encounter.save(update_fields=['status', 'diagnosis', 'updated_at'])
+
+        create_response = self._upload(name='bo-sung.pdf')
+        delete_response = self.client.delete(
+            f'/medical-attachments/{attachment_id}/'
+        )
+        self.assertEqual(create_response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(delete_response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertTrue(MedicalAttachment.objects.filter(pk=attachment_id).exists())
+
+    def test_reception_workflow_creation_is_audited(self):
+        self.client.force_authenticate(self.receptionist_user)
+        response = self.client.post(
+            '/patients/',
+            {
+                'full_name': 'Bệnh nhân nhật ký',
+                'date_of_birth': '2001-01-02',
+            },
+            format='json',
+        )
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertTrue(AuditLog.objects.filter(
+            actor=self.receptionist_user,
+            action=AuditLog.Action.CREATE,
+            resource_type='Patient',
+            resource_id=str(response.data['id']),
+        ).exists())

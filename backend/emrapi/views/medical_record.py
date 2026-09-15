@@ -1,12 +1,13 @@
 from django.db.models import Prefetch
 from rest_framework import filters, viewsets
 
-from emrapi.models import Encounter, LabTest, MedicalRecord, Prescription, Visit
+from emrapi.audit import AuditTrailMixin
+from emrapi.models import Encounter, LabTest, MedicalAttachment, MedicalRecord, Prescription, Visit
 from emrapi.permission import IsDoctorOrAdmin
 from emrapi.serializers import MedicalRecordSerializer, MedicalRecordSummarySerializer
 
 
-class MedicalRecordViewSet(viewsets.ModelViewSet):
+class MedicalRecordViewSet(AuditTrailMixin, viewsets.ModelViewSet):
     queryset = (
         MedicalRecord.objects
         .filter(active=True)
@@ -58,6 +59,12 @@ class MedicalRecordViewSet(viewsets.ModelViewSet):
             .prefetch_related('items', 'items__medication')
         )
         lab_test_queryset = LabTest.objects.select_related('test_catalog')
+        attachment_queryset = MedicalAttachment.objects.filter(active=True).select_related(
+            'lab_test',
+            'lab_test__test_catalog',
+            'uploaded_by',
+            'uploaded_by__user',
+        )
         encounter_queryset = (
             Encounter.objects
             .select_related(
@@ -70,6 +77,7 @@ class MedicalRecordViewSet(viewsets.ModelViewSet):
                 'vital_signs',
                 Prefetch('lab_tests', queryset=lab_test_queryset),
                 Prefetch('prescriptions', queryset=prescription_queryset),
+                Prefetch('attachments', queryset=attachment_queryset),
             )
         )
         visit_queryset = Visit.objects.prefetch_related(
