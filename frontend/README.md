@@ -1,16 +1,16 @@
-# React + Vite
+# EMR Care Frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Ứng dụng React dành cho năm vai trò trong quy trình khám ngoại trú của EMR Care. Frontend sử dụng React Router để bảo vệ route theo vai trò và một lớp REST client hỗ trợ JWT, tự làm mới access token và tải tệp có xác thực.
 
-Currently, two official plugins are available:
+Hướng dẫn cài đặt, tài khoản demo, kiến trúc và kịch bản chạy đầy đủ nằm trong [README của repository](../README.md).
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## Lệnh phát triển
 
-## React Compiler
+```powershell
+npm install
+npm run dev
+npm run lint
+npm run build
+```
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+Vite chạy tại `http://localhost:3000` và chuyển tiếp `/api` tới Django tại `http://localhost:8000` trong môi trường local.

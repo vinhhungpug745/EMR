@@ -12,8 +12,20 @@ Trong quy trình khám ngoại trú, dữ liệu của một bệnh nhân đư�
 
 EMR Care tổ chức dữ liệu theo một luồng thống nhất:
 
+```text
+Tiếp nhận → Đo sinh hiệu → Khám bác sĩ → Xét nghiệm/Kê đơn → Hoàn tất → Tra cứu lịch sử
+```
 
 Hồ sơ bệnh án giữ liên kết giữa thông tin bệnh nhân, các lần đến khám, lượt khám chuyên khoa, sinh hiệu, chẩn đoán, đơn thuốc, xét nghiệm và tệp đính kèm.
+
+```mermaid
+flowchart LR
+    UI[React Web App] -->|REST + JWT| API[Django REST Framework]
+    API --> DB[(MySQL)]
+    API --> FILES[Tệp y tế]
+    API --> AUDIT[Audit log]
+    API --> DOCS[Swagger / ReDoc]
+```
 
 ## Điểm nổi bật kỹ thuật
 
@@ -22,18 +34,23 @@ Hồ sơ bệnh án giữ liên kết giữa thông tin bệnh nhân, các lần
 - Xây dựng ba hàng đợi từ dữ liệu trong MySQL: đo sinh hiệu, khám bệnh và xét nghiệm.
 - Sử dụng transaction và `select_for_update()` tại các thao tác đổi trạng thái quan trọng để giảm nguy cơ xử lý trùng.
 - Lưu nhật ký thao tác kèm người thực hiện, hành động, đối tượng liên quan và thời gian.
+- Quản lý tệp y tế có kiểm soát quyền: bác sĩ bổ sung tài liệu cho lượt khám, nhân viên xét nghiệm tải tệp kết quả cho chỉ định đang xử lý.
 - Tách frontend và backend qua REST API; cung cấp tài liệu tương tác bằng Swagger và ReDoc.
 - Hỗ trợ dữ liệu mẫu có thể tái tạo để kiểm thử và trình diễn toàn bộ quy trình.
+
+## Phạm vi thực hiện
+
+Đây là dự án cá nhân full-stack. Các phần chính được thực hiện gồm phân tích luồng nghiệp vụ, thiết kế mô hình dữ liệu và trạng thái, xây dựng REST API và giao diện theo vai trò, phân quyền, kiểm thử tự động, tạo dữ liệu mô phỏng và triển khai bản demo.
 
 ## Chức năng theo vai trò
 
 | Vai trò | Chức năng chính |
 |---|---|
 | Quản trị viên | Quản lý tài khoản, nhân viên, khoa, thuốc, danh mục xét nghiệm, báo cáo và audit log |
-| Nhân viên tiếp nhận | Tra cứu hoặc tạo bệnh nhân, quản lý hồ sơ và tạo lần đến khám |
+| Nhân viên tiếp nhận | Tra cứu hoặc tạo bệnh nhân, tạo lần đến khám và lượt khám ban đầu |
 | Điều dưỡng | Theo dõi hàng đợi, đo và cập nhật dấu hiệu sinh tồn |
-| Bác sĩ | Xem bệnh án, khám, chẩn đoán, kê đơn, chỉ định xét nghiệm và chuyển khoa |
-| Nhân viên xét nghiệm | Tiếp nhận chỉ định, cập nhật tiến độ và nhập kết quả xét nghiệm |
+| Bác sĩ | Xem bệnh án, khám, chẩn đoán, kê đơn, chỉ định xét nghiệm, chuyển khoa và quản lý tài liệu của lượt khám |
+| Nhân viên xét nghiệm | Tiếp nhận chỉ định, cập nhật tiến độ, nhập nội dung và tải tệp kết quả xét nghiệm |
 
 ## Công nghệ
 
@@ -45,6 +62,22 @@ Hồ sơ bệnh án giữ liên kết giữa thông tin bệnh nhân, các lần
 | Xác thực | Simple JWT |
 | Tài liệu API | drf-yasg, Swagger UI, ReDoc |
 | Triển khai demo | Cloudflare Tunnel, domain `emr-care.site` |
+
+## Kiểm thử và kiểm tra chất lượng
+
+- **26 kiểm thử API tự động** bằng `APITestCase`, bao phủ RBAC, trạng thái nhân viên, tiếp nhận, sinh hiệu, khám bệnh, xét nghiệm, đơn thuốc, chuyển chuyên khoa, tệp đính kèm và audit log.
+- Backend được kiểm tra bằng Django system check và chạy trên database kiểm thử độc lập.
+- Frontend được kiểm tra bằng ESLint và production build của Vite.
+
+```powershell
+cd backend
+python manage.py test emrapi -v 2
+python manage.py check
+
+cd ..\frontend
+npm run lint
+npm run build
+```
 
 ## Chạy dự án trên máy local
 
@@ -148,6 +181,8 @@ Chạy `python seed.py` để tạo dữ liệu giả lập.
 | Bác sĩ | `bacsi.an` |
 | Nhân viên xét nghiệm | `xetnghiem.hai` |
 
+Mật khẩu chung sau khi chạy seed: `Emr@123456`.
+
 Không sử dụng các tài khoản hoặc mật khẩu demo trong môi trường thực tế.
 
 ## Kịch bản demo nhanh
@@ -156,8 +191,8 @@ Không sử dụng các tài khoản hoặc mật khẩu demo trong môi trườ
 2. Đăng nhập với vai trò điều dưỡng, chọn bệnh nhân trong hàng đợi và ghi sinh hiệu.
 3. Đăng nhập với vai trò bác sĩ, mở lượt khám và nhập thông tin khám.
 4. Tạo chỉ định xét nghiệm hoặc kê đơn thuốc.
-5. Đăng nhập với vai trò xét nghiệm, tiếp nhận chỉ định và trả kết quả.
-6. Quay lại vai trò bác sĩ, xem kết quả và hoàn tất lượt khám.
+5. Đăng nhập với vai trò xét nghiệm, tiếp nhận chỉ định, nhập nội dung hoặc tải tệp kết quả và hoàn tất xét nghiệm.
+6. Quay lại vai trò bác sĩ, xem nội dung/tệp kết quả và hoàn tất lượt khám.
 7. Dùng tài khoản quản trị để xem báo cáo và nhật ký thao tác.
 
 ## Tài liệu API
