@@ -18,14 +18,6 @@ Tiếp nhận → Đo sinh hiệu → Khám bác sĩ → Xét nghiệm/Kê đơn
 
 Hồ sơ bệnh án giữ liên kết giữa thông tin bệnh nhân, các lần đến khám, lượt khám chuyên khoa, sinh hiệu, chẩn đoán, đơn thuốc, xét nghiệm và tệp đính kèm.
 
-```mermaid
-flowchart LR
-    UI[React Web App] -->|REST + JWT| API[Django REST Framework]
-    API --> DB[(MySQL)]
-    API --> FILES[Tệp y tế]
-    API --> AUDIT[Audit log]
-    API --> DOCS[Swagger / ReDoc]
-```
 
 ## Điểm nổi bật kỹ thuật
 
