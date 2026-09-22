@@ -37,6 +37,9 @@ ALLOWED_HOSTS = [
     'api.emr-care.site',
 ]
 
+# Cloudflare Tunnel exposes Django Admin over HTTPS while Django receives HTTP.
+CSRF_TRUSTED_ORIGINS = ['https://api.emr-care.site']
+
 
 # Application definition
 

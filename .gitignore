@@ -2,6 +2,7 @@ __pycache__/
 *.py[cod]
 *.sqlite3
 .env
+backend/media/
 node_modules/
 .pnpm-store/
 dist/

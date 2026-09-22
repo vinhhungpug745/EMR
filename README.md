@@ -172,7 +172,7 @@ Chỉ dùng các tài khoản trên với dữ liệu giả lập ở môi trư�
 
 ## 7. Kiểm thử và tài liệu API
 
-Repository hiện có **26 bài kiểm thử API** trong `backend/emrapi/tests.py`, bao phủ phân quyền, khóa hồ sơ nhân viên, luồng tiếp nhận, sinh hiệu, khám, xét nghiệm, đơn thuốc, chuyển chuyên khoa, tệp đính kèm và nhật ký thao tác. Chạy kiểm thử bằng một database MySQL thử nghiệm riêng; tài khoản MySQL phải có quyền tạo database kiểm thử do Django khởi tạo.
+Repository hiện có **26 bài kiểm thử API và 1 bài kiểm thử Django Admin** trong `backend/emrapi/tests.py`. Các bài kiểm thử API bao phủ phân quyền, khóa hồ sơ nhân viên, luồng tiếp nhận, sinh hiệu, khám, xét nghiệm, đơn thuốc, chuyển chuyên khoa, tệp đính kèm và nhật ký thao tác. Chạy kiểm thử bằng một database MySQL thử nghiệm riêng; tài khoản MySQL phải có quyền tạo database kiểm thử do Django khởi tạo.
 
 ```powershell
 cd backend
@@ -204,4 +204,3 @@ Các hướng mở rộng phù hợp gồm cập nhật hàng đợi theo thời
 ## Tác giả và bản quyền
 
 **vinhhungpug745** — Full-stack Developer. [GitHub](https://github.com/vinhhungpug745) · [Email](mailto:vinhhungpug745@gmail.com).
-

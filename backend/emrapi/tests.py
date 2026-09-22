@@ -27,6 +27,23 @@ from emrapi.models import (
 )
 
 
+class AdminPageTests(APITestCase):
+    def test_patient_changelist_renders_with_mysql_timezone_settings(self):
+        admin_user = User.objects.create_superuser(
+            username='admin_changelist_test',
+            password='Strong-test-password-123',
+        )
+        Patient.objects.create(
+            full_name='Bệnh nhân kiểm thử Admin',
+            date_of_birth='2000-01-01',
+        )
+        self.client.force_login(admin_user)
+
+        response = self.client.get('/admin/emrapi/patient/')
+
+        self.assertEqual(response.status_code, 200)
+
+
 class RolePermissionTests(APITestCase):
     @classmethod
     def setUpTestData(cls):

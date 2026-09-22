@@ -1,15 +1,13 @@
-echo "=== cài đặt thư viện từ requirements.txt ==="
-pip install -r requirements.txt
+#!/usr/bin/env bash
+set -euo pipefail
 
-echo "=== Thực thi migrate cơ sở dữ liệu ==="
-python manage.py makemigrations
+cd "$(dirname "$0")"
+
+python -m pip install -r requirements.txt
 python manage.py migrate
 
-echo "=== Tạo superuser ==="
-export DJANGO_SUPERUSER_USERNAME=admin
-export DJANGO_SUPERUSER_EMAIL=admin@gmail.com
-export DJANGO_SUPERUSER_PASSWORD=Admin@123
+if [[ "${SEED_DEMO_DATA:-0}" == "1" ]]; then
+    python seed.py
+fi
 
-python manage.py createsuperuser --no-input || echo "SuperUser đã tồn tại!"
-python seed_data.py run
-echo "=== Chạy xong ==="
+echo 'Thiết lập hoàn tất. Chạy: python manage.py runserver 8000'

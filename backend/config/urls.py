@@ -22,11 +22,10 @@ from django.urls import path, re_path, include
 
 schema_view = get_schema_view(
     openapi.Info(
-        title="Course API",
+        title="EMR Care API",
         default_version='v1',
-        description="APIs for EMRWEBSITE",
+        description="API quản lý hồ sơ bệnh án điện tử phục vụ khám bệnh, chữa bệnh ngoại trú.",
         contact=openapi.Contact(email="vinhhungpug745@gmail.com"),
-        license=openapi.License(name="Acadedmy"),
     ),
     public=True,
     permission_classes=(permissions.AllowAny,),
