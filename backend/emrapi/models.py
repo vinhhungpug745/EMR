@@ -360,15 +360,15 @@ class Encounter(BaseModel):
                 raise ValidationError({'diagnosis': 'Lượt khám hoàn thành phải có chẩn đoán.'})
             if not self.completed_at:
                 raise ValidationError({'completed_at': 'Lượt khám hoàn thành phải có thời gian kết thúc.'})
-        if (
-                self.completed_at
-                and self.started_at
-                and self.completed_at < self.started_at
-        ):
-            raise ValidationError({
-                'completed_at':
-                    'Thời gian kết thúc không được trước thời gian bắt đầu.'
-            })
+        # if (
+        #         self.completed_at
+        #         and self.started_at
+        #         and self.completed_at < self.started_at
+        # ):
+        #     raise ValidationError({
+        #         'completed_at':
+        #             'Thời gian kết thúc không được trước thời gian bắt đầu.'
+        #     })
 
 
 class VitalSign(BaseModel):

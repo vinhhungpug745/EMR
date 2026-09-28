@@ -18,7 +18,13 @@ from django.contrib import admin
 from drf_yasg import openapi
 from drf_yasg.views import get_schema_view
 from rest_framework import permissions
+from django.http import JsonResponse
 from django.urls import path, re_path, include
+
+
+def health_check(request):
+    return JsonResponse({'status': 'ok'})
+
 
 schema_view = get_schema_view(
     openapi.Info(
@@ -32,6 +38,7 @@ schema_view = get_schema_view(
 )
 
 urlpatterns = [
+    path('health/', health_check, name='health-check'),
     path('admin/', admin.site.urls),
     path('', include('emrapi.urls')),
     re_path(r'^swagger(?P<format>\.json|\.yaml)$',
