@@ -4,19 +4,19 @@ http://127.0.0.1:8080 {
 	# The React client calls same-origin APIs under /api. Django's URL
 	# configuration does not include that prefix, so remove it here.
 	handle_path /api/* {
-		reverse_proxy 127.0.0.1:8000
+		reverse_proxy 127.0.0.1:8001
 	}
 
 	# These routes belong to Django and must keep their original paths.
 	@django_routes path /admin* /swagger* /redoc* /static/*
 	handle @django_routes {
-		reverse_proxy 127.0.0.1:8000
+		reverse_proxy 127.0.0.1:8001
 	}
 
 	# Serve the Vite production build and fall back to index.html for
 	# client-side React Router routes.
 	handle {
-		root * D:/hung/DAEMR/EMR/frontend/dist
+		root * D:/hung/apps/emr/frontend
 		try_files {path} /index.html
 		file_server
 	}
