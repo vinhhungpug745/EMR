@@ -1,0 +1,20 @@
+<service>
+  <id>EMRCaddy</id>
+  <name>EMR Caddy</name>
+  <description>Runs the Caddy reverse proxy and serves the EMR React production bundle.</description>
+
+  <executable>C:\caddy\caddy.exe</executable>
+  <arguments>run --config D:\hung\apps\emr\Caddyfile --adapter caddyfile</arguments>
+  <workingdirectory>C:\caddy</workingdirectory>
+
+  <startmode>Automatic</startmode>
+  <delayedAutoStart>true</delayedAutoStart>
+
+  <onfailure action="restart" delay="10 sec" />
+  <onfailure action="restart" delay="30 sec" />
+  <resetfailure>1 hour</resetfailure>
+
+  <stoptimeout>15 sec</stoptimeout>
+  <logpath>D:\hung\services\emr-caddy\logs</logpath>
+  <log mode="roll" />
+</service>

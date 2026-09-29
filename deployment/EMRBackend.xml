@@ -1,0 +1,20 @@
+<service>
+  <id>EMRBackend</id>
+  <name>EMR Backend</name>
+  <description>Runs the EMR Django application with Waitress on 127.0.0.1:8001.</description>
+
+  <executable>D:\hung\apps\emr\venv\Scripts\python.exe</executable>
+  <arguments>-m waitress --listen=127.0.0.1:8001 config.wsgi:application</arguments>
+  <workingdirectory>D:\hung\apps\emr\backend</workingdirectory>
+
+  <startmode>Automatic</startmode>
+  <delayedAutoStart>true</delayedAutoStart>
+
+  <onfailure action="restart" delay="10 sec" />
+  <onfailure action="restart" delay="30 sec" />
+  <resetfailure>1 hour</resetfailure>
+
+  <stoptimeout>15 sec</stoptimeout>
+  <logpath>D:\hung\services\emr-backend\logs</logpath>
+  <log mode="roll" />
+</service>
