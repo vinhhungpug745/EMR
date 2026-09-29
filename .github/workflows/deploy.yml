@@ -41,5 +41,5 @@ jobs:
           cache-dependency-path: frontend/package-lock.json
 
       - name: Deploy to production
-        shell: powershell
+        shell: powershell -ExecutionPolicy Bypass -File {0}
         run: .\deployment\deploy.ps1
